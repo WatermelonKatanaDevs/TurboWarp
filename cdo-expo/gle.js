@@ -435,7 +435,7 @@ async function getHTML(id, code) {
     <button id="downButton" disabled className="arrow">
     </button>
   </div>
-  <div id="studio-dpad-container" style="position:absolute; width:400px; bottom:5px; height:157px; overflow-y:hidden;z-index: -1;">
+  <div id="studio-dpad-container" style="display:none; position:absolute; width:400px; bottom:5px; height:157px; overflow-y:hidden; z-index: -1;">
   </div>
 </body>
 </html>`
