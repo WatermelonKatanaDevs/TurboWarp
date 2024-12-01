@@ -39,11 +39,11 @@ Great job! Now there should be a [Publish](https://watermelonkatana.com/publish)
 - Optional: WatermelonKatana will try to use your project thumbnail from Code.org by default; however, you are free to make a custom thumbnail to make your project more appealing rather than just having it be a frame of gameplay.
 
 **Project Data**
-Optional: This will only appear when publishing CDO games to allow users to populate storage from previous games if necessary. Specific games like [Geometry Dash](https://watermelonkatana.com/project/66c3fdab4f7e70aac89f4659) which stores its level data inside of the project. This may be one of many such cases to allow your project to run without hiccups.
+- Optional: This will only appear when publishing CDO games to allow users to populate storage from previous games if necessary. Specific games like [Geometry Dash](https://watermelonkatana.com/project/66c3fdab4f7e70aac89f4659) which stores its level data inside of the project. This may be one of many such cases to allow your project to run without hiccups.
 To do this in the easiest way possible, I have automated the data exfiltration process. If this does not apply to you, feel free to [Skip](#skipped-data-export) this step.
 
 1. Navigate to your code.org project.
-2. Copy this code below into the inspect console and then hit 'Enter.`
+2. Copy this code below into the inspect console and then hit `Enter.`
 ```js
 const link = location.href.match(new RegExp(`(?<=(applab|gamelab)/)[^/]+|^[^/]+(?!/)$`));
 const id = link[0];
