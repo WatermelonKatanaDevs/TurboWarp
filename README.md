@@ -33,7 +33,7 @@ Great job! Now there should be a [Publish](https://watermelonkatana.com/publish)
 - The full link to your code.org project. **PLEASE DO NOT PUT JUST THE ID!** `https://studio.code.org/projects/<type>/<id>`
 
 **Description**
-- Optional, very useful for stating any controls or any lost games that you can credit the original author with *(unforunately some have not left any credit; try to look for it if possible.)* 
+- Optional, very useful for stating any controls or any lost games that you can credit the original author with *(unfortunately some have not left any credit; try to look for it if possible.)* 
 
 **Thumbnail**
 - Optional: WatermelonKatana will try to use your project thumbnail from Code.org by default; however, you are free to make a custom thumbnail to make your project more appealing rather than just having it be a frame of gameplay.
@@ -92,7 +92,7 @@ async function getTables() {
 }
 ```
 3. You should receive a JSON file from the download client; make sure it is in .json and that there have not been any formatting errors. It must be `<= 10 MB` in size.
-4. Copy and Paste the exported data into the project into the **Project Data** section.
+4. Copy and Paste the exported data from the CDO project into the WatermelonKatana **Project Data** section.
 5. If you want to add or fix any data later, don't worry. You'll be able to modify this data later if necessary. **(I am not responsible for helping you fix the json files if you so choose to manually edit them!)**
 
 <span id="skipped-data-export"><b> Tags (separate with comma) </b></span>
@@ -105,7 +105,7 @@ async function getTables() {
 **Hidden**
 - Testing your games before making them live for everyone else to see is important! This box here is here for private testing if you don't want others to see it until you're ready to showcase it.
 
-And with that, you're now ready to publish! Below will be quirks and specifics about the modified game engines, basically the Dos and Don'ts of using the engine without the CDO interpreter.
+And with that, you're now ready to publish! Below will be quirks and specifics about the modified game engines, basically the Do's and Don'ts of using the engine without the CDO interpreter.
 
 >## **Applab**
 
@@ -145,7 +145,7 @@ And with that, you're now ready to publish! Below will be quirks and specifics a
     - p5Inst
     - \_FCONFIG\_
 
-Setting any of these variables to a different value can and will break your program. To avoid this, remove any global declarations of these variables in your program.
+Setting any of these variables to a different value will break your program. To avoid this, remove any global declarations of these variables in your program.
 
 >## **FAQ**
 
