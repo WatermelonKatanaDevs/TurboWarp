@@ -20,14 +20,14 @@ The main upside of this engine is that it allows **most of the ES5 capabilities*
 
 >## Publishing
 
-Our first step toward seeing how compatible your project is with the interpreter is to publish your project!
+Our first step toward seeing how compatible your project is with the compiler is to publish your project!
 
 To do this, you must first make an [Account](https://watermelonkatana.com/register). If you already have one, feel free to [Sign In](https://watermelonkatana.com/login) to continue.
 
 Great job! Now there should be a [Publish](https://watermelonkatana.com/publish) button on the homepage, which will guide you there, or you can follow the link provided if unsure. From there, you can start filling out the information to start publishing your first project. It should be filled out in the following format:
 
 **Name**
-- The name of your project. You can shorten or name it however you'd like, so long as it complies with our [Guidelines]()
+- The name of your project. You can shorten or name it however you'd like, so long as it complies with our [Guidelines](https://github.com/WatermelonKatanaDevs/WatermelonKatana/blob/main/Assets/md/posting_guidelines.md)
 
 **Link**
 - The full link to your code.org project. **PLEASE DO NOT PUT JUST THE ID!** `https://studio.code.org/projects/<type>/<id>`
@@ -111,36 +111,36 @@ And with that, you're now ready to publish! Below will be quirks and specifics a
 
 ### **Do's**
 
-- allows es6
-- supports most datablock_storage requests
-- has all CDO implemented methods for Applab runtime environment
-- has pollyfilled array method arguments for ES5
-- has dynamic upscaler & allows for custom HTML scaling for fullscreen applications
+- Allows es6
+- Supports most datablock_storage requests
+- Has all CDO implemented methods for Applab runtime environment
+- Has pollyfilled array method arguments for ES5
+- Has dynamic upscaler & allows for custom HTML scaling for fullscreen applications
 
 ### **Don'ts**
 
-- don't use baseURI directly (it will return different data).
-- don't use relative paths <br>
+- Don't use baseURI directly (it will return different data).
+- Don't use relative paths <br>
 `/v3/assets/<id>/<asset>`  ❌ <br>
 `https://studio.code.org/v3/assets/<id>/<asset>` ✅
-- don't set any global variables that may interfere with the windowed runtime environments.
-- don't override EXPORT_OPTIONS. It's the environment uptime keeper.
+- Don't set any global variables that may interfere with the windowed runtime environments.
+- Don't override EXPORT_OPTIONS. It's the environment uptime keeper.
 
 >## **Gamelab**
 
 ### **Do's**
 
-- allows es6
-- supports set & get keyvalues
-- has all CDO implemented methods for the GameLab runtime environment.
-- has pollyfilled array method arguments for ES5
-- has an upscaler that runs the game on a bigger screen
-- emulates relative paths for assets
+- Allows es6
+- Supports set & get keyvalues
+- Has all CDO implemented methods for the GameLab runtime environment.
+- Has pollyfilled array method arguments for ES5
+- Has an upscaler that runs the game on a bigger screen
+- Emulates relative paths for assets
 
 ### **Don'ts**
 
-- don't set any global variables that may interfere with the windowed runtime environments.
-- don't override this list of runtime variables.
+- Don't set any global variables that may interfere with the windowed runtime environments.
+- Don't override this list of runtime variables.
     - p5
     - p5Inst
     - \_FCONFIG\_
@@ -167,5 +167,5 @@ Q: My project has weird font issues when it comes to icons?
 Q: Why can't I change the TTS voice gender?
 - A: <br> the TTS standin that is currently being used does not support this; it is still passed through the request if you want to run your own implementation of the service at some point. It's barely ever used, so I don't plan on upgrading the module that runs it anytime soon.
 
-Q: Why can't you emulate it 100%?
+Q: Why can't you simulate it at 100%?
 - A: <br> It would defeat the purpose of trying to make projects faster. See Code.org uses an interpreter for their projects, which allows for a few things to be done that can't be accomplished within my environment, but their program runs several times slower since I am running the project without any interpreters. Much of the P5 library & the respective Applab & Gamelab APIs have been modified significantly for this purpose.
