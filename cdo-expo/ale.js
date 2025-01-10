@@ -121,7 +121,7 @@ async function getHTML(html, id, code) {
   </head>
   <body>
   <div id="divApplab" class="appModern running" tabindex="1" style="position: absolute; top: 0px; left: 0px; width: 320px; height: 450px; display: block;">
-  ${html.match(/<div class="screen".*/g)[0]}
+  ${html.match(/<div[^>]*class="screen".*/g)[0]}
   </body>
   </html>`;
   let page = new jsdom.JSDOM(html);
