@@ -26167,6 +26167,8 @@
                                 path.match(/^(assets|\/xhr)/) !== null
                                     ? path
                                     : '/xhr?u=' + encodeURIComponent(path)
+                        } else {
+                            return errorCallback !== undefined ? errorCallback(): void 0;
                         }
 
                         req.addEventListener('error', function (resp) {
