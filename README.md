@@ -152,6 +152,13 @@ Setting any of these variables to a different value will break your program. To 
 Q: Why can't I run my projects from Code.org's export option?
 - A: <br> Well, it hasn't been maintained for years; major work had to be done to get this up and running.
 
+Q: I've changed my project to comply with how the compiler works but my game still won't run?
+- A: <br> If you have any other dependencies (yes that also includes libraries that you may be using) could be the issue. As of now there are two main libraries that have bad compilation with how my project processes them at the moment, so if you are using a version of them you may have to replace or modify them! For the more popular libraries i have made an offical patched version of the library to use bulleted below. <br>
+<span style="position: absolute; left: 20px">
+Radon: <b>0KqNkPHxI4lT6ot6N2MVPhSyBcRFHzqwyhQR7-dPpvA</b>
+Vault: <b>6Gk2DT1yTx3LVplyaQO9gNVZHpU7HfaBHrmPeut-t14</b>
+</span>
+
 Q: Why can't we use code.org's storage base instead of this separate one?
 - A:
     - It violates code.org's TOS in their robots.txt for scraping & updating data.
