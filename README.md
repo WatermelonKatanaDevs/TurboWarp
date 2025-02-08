@@ -61,7 +61,7 @@ const storage = { keys: {}, tables: {} };
             anchor.download = `${type}_${id}_storage.json`;
             document.body.appendChild(anchor);
             anchor.click();
-            document.removeChild(anchor);
+            document.body.removeChild(anchor);
             break;
         default:
             throw "storage medium not supported";
