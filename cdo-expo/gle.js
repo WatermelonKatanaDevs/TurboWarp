@@ -407,8 +407,12 @@ async function getHTML(id, code) {
         script.text = ${JSON.stringify(code)};
         document.head.appendChild(script);
         // scaler
-        const element = document.getElementById("sketch")
-        element.style["transform"] = "scale(" + (Math.min(window.innerWidth, window.innerHeight) / 400) + ")";
+        const element = document.getElementById("sketch");
+        function rescale() {
+          element.style["transform"] = "scale(" + (Math.min(window.innerWidth, window.innerHeight) / 400) + ")";
+        }
+        rescale();
+        window.onresize = rescale;
         element.style["transform-origin"] = "top left";
       })
   </script>
