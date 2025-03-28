@@ -87,6 +87,7 @@ async function getHTML(html, id, code) {
               function rescale() {
                 let scaling = "scale(" + (Math.min(document.body.clientWidth, document.body.clientHeight) / 450) + ")";
                 if(element.style.width === width && element.style.height === height) {
+                  element.position = "absolute";
                   element.style["transform"] = scaling;
                 }
               }
@@ -99,9 +100,10 @@ async function getHTML(html, id, code) {
                   if(mutation.attributeName === "style") {
                     if((targetStyle.width !== width || targetStyle.height !== height) && targetStyle.transform !== "") {
                       targetStyle.transform = "";
-                    } else if (((targetStyle.width === width && targetStyle.height === height) || targetStyle.position === "relative") && targetStyle.transform === "") {
+                    } else if (((targetStyle.width === width && targetStyle.height === height) || targetStyle.position === "absolute") && targetStyle.transform === "") {
                       targetStyle.width = width;
                       targetStyle.height = height;
+                      targetStyle.position = "absoloute";
                       targetStyle.transform = scaling; 
                     }
                   }
