@@ -100,11 +100,13 @@ async function getHTML(html, id, code) {
                   if(mutation.attributeName === "style") {
                     if((targetStyle.width !== width || targetStyle.height !== height) && targetStyle.transform !== "") {
                       targetStyle.transform = "";
-                    } else if (((targetStyle.width === width && targetStyle.height === height) || targetStyle.position === "absolute") && targetStyle.transform === "") {
-                      targetStyle.width = width;
-                      targetStyle.height = height;
+                    } else if (((targetStyle.width === width && targetStyle.height === height) || targetStyle.position === "absolute")) {
                       targetStyle.position = "absolute";
-                      targetStyle.transform = scaling; 
+                      if(targetStyle.transform === "") {
+                        targetStyle.width = width;
+                        targetStyle.height = height;
+                        targetStyle.transform = scaling; 
+                      }
                     }
                   }
                 }
