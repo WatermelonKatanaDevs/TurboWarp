@@ -103,7 +103,7 @@ async function getHTML(html, id, code) {
                     } else if (((targetStyle.width === width && targetStyle.height === height) || targetStyle.position === "absolute") && targetStyle.transform === "") {
                       targetStyle.width = width;
                       targetStyle.height = height;
-                      targetStyle.position = "absoloute";
+                      targetStyle.position = "absolute";
                       targetStyle.transform = scaling; 
                     }
                   }
