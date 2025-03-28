@@ -100,7 +100,7 @@ async function getHTML(html, id, code) {
                   if(mutation.attributeName === "style") {
                     if((targetStyle.width !== width || targetStyle.height !== height) && targetStyle.transform !== "") {
                       targetStyle.transform = "";
-                    } else if (((targetStyle.width === width && targetStyle.height === height) || targetStyle.position === "absolute")) {
+                    } else if (((targetStyle.width === width && targetStyle.height === height) || targetStyle.position === "relative")) {
                       targetStyle.position = "absolute";
                       if(targetStyle.transform === "") {
                         targetStyle.width = width;
