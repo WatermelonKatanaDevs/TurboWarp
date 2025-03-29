@@ -85,7 +85,7 @@ async function getHTML(html, id, code) {
               let height = "450px";
               let scaling;
               function rescale() {
-                scaling = "scale(" + (Math.min(document.body.clientWidth, document.body.clientHeight) / 450) + ")";
+                scaling = "scale(" + (Math.max(document.body.clientWidth, document.body.clientHeight) / 450) + ")";
                 if(element.style.width === width && element.style.height === height) {
                   element.style["transform"] = scaling;
                 }
@@ -99,7 +99,7 @@ async function getHTML(html, id, code) {
                   if(mutation.attributeName === "style") {
                     if((targetStyle.width !== width || targetStyle.height !== height) && targetStyle.transform !== "") {
                       targetStyle.transform = "";
-                    } else if ((targetStyle.width === width && targetStyle.height === height) || targetStyle.position === "relative") {
+                    } else if((targetStyle.width === width && targetStyle.height === height) || targetStyle.position === "relative") {
                       targetStyle.position = "absolute";
                       if(targetStyle.transform === "") {
                         targetStyle.width = width;
