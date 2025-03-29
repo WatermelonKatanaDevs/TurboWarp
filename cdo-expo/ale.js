@@ -85,7 +85,7 @@ async function getHTML(html, id, code) {
               let height = "450px";
               let scaling;
               function rescale() {
-                scaling = "scale(" + (document.body.clientHeight / 450) + ")";
+                scaling = "scale(" + (window.innerHeight / 450) + ")";
                 if(element.style.width === width && element.style.height === height) {
                   element.style["transform"] = scaling;
                 }
