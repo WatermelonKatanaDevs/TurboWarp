@@ -2227,6 +2227,8 @@ div.WireframeButtons_active {
 #divApplab img,
 #designModeViz img,
 .draggingParent img {
+  object-fit: contain;
+  font-family: "object-fit: contain";
   opacity: 1;
   max-width: none;
 }
