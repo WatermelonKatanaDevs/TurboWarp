@@ -11,7 +11,7 @@ class Turbo {
       let id = project.match(link);
       if (id !== null) {
         project = await customExport(id[0]);
-        res.send(project);
+        res.status(200).send(project);
       }
     });
   }
