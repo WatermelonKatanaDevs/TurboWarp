@@ -1,11 +1,8 @@
-// const express = require('express');
 const fetch = require('cross-fetch');
 const { Database } = require("./database");
 const speech = require('./speech');
 let initalized = false;
-// const app = express();
-// const argv = process.argv.slice(2);
-// const folder = (argv[0] || process.cwd());
+
 class Host {
   constructor(app) {
     if (!initalized) {
@@ -14,7 +11,7 @@ class Host {
         recall(req.query.u, "text")
           .then(response => {
             res.set("Content-Type", response.type);
-            res.send(response.data);
+            res.status(200).send(response.data);
           })
           .catch(err => {
             res.status(err).send();
@@ -23,17 +20,17 @@ class Host {
       // Works for audio video or images
       app.get("/media", (req, res) => {
         recall(req.query.u, "blob")
-        .then(response => {
-          let contentType = response.type;
-          if(!contentType.startsWith("image") && !contentType.startsWith("audio")){
-            throw new Error("unsupported media type")
-          }
-          res.set("Content-Type", contentType)
-          response.data.stream().pipe(res)
-        })
-        .catch(err => {
-          res.status(err).send();
-        })
+          .then(response => {
+            let contentType = response.type;
+            if (!contentType.startsWith("image") && !contentType.startsWith("audio")) {
+              throw new Error("unsupported media type")
+            }
+            res.set("Content-Type", contentType)
+            response.data.stream().pipe(res)
+          })
+          .catch(err => {
+            res.status(err).send();
+          })
       })
       // TTS Standin for Azure
       app.get("/speech", (req, res) => {
