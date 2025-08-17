@@ -23,6 +23,7 @@ async function exportProject(id) {
 
 function getCode(json) {
   let libraries = ``;
+  json.source = json.source.replace(/<\/script>/g, "<\\/script");
   json.libraries = json.libraries || [];
   json.libraries.forEach((library) => {
     let lib = library.name;

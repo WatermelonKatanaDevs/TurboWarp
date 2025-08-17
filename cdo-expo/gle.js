@@ -27,8 +27,9 @@ async function getJSON(id) {
 }
 
 function getCode(json) {
-  let animationList = json.animations
-  let libraries = ``
+  let animationList = json.animations;
+  let libraries = ``;
+  json.source = json.source.replace(/<\/script>/g, "<\\/script");
   let registry = json.source.match(/(?<!function\s*\S*\s*\(.*\)\s*{[^}]*)^var \b(_fillSet|_doFill|_doStroke|_strokeSet|focused|_targetFrameRate|windowWidth|windowHeight|_curElement|canvas|width|height|_textLeading|_textSize|_textStyle|_textAscent|_textDescent|imageData|pixels|pAccelerationX|pAccelerationY|pAccelerationZ|pRotationX|pRotationY|pRotationZ|rotationX|rotationY|rotationZ|deviceOrientation|turnAxis|isKeyPressed|keyIsPressed|keyCode|key|_lastKeyCodeTyped|mouseX|mouseY|winMouseX|winMouseY|_hasMouseInteracted|pmouseX|pmouseY|pwinMouseX|pwinMouseY|mouseButton|isMousePressed|mouseIsPressed|touches|touchX|touchY|winTouchX|winTouchY|_hasTouchInteracted|ptouchX|ptouchY|pwinTouchX|pwinTouchY|touchIsDown|_textFont|tex|isTexture)\b/gm);
   if (registry !== null) {
     let registryCache = [];
