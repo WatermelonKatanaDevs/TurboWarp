@@ -23,7 +23,6 @@ async function exportProject(id) {
 
 function getCode(json) {
   let libraries = ``;
-  json.source = json.source.replace(/<\s*\/script\s*>/g, "<\\/script>");
   json.libraries = json.libraries || [];
   json.libraries.forEach((library) => {
     let lib = library.name;
@@ -34,7 +33,9 @@ function getCode(json) {
     libraries += `var ${lib} = window[${JSON.stringify(lib)}] || {};
 (function ${lib}() {\n${src}\nreturn(this)\n}).bind(${lib})();\n`;
   });
-  return libraries + json.source;
+  json.source = libraries + json.source;
+  json.source = json.source.replace(/<\s*\/script\s*>/g, "<\\/script>");
+  return json.source;
 }
 
 async function getHTML(html, id, code) {
