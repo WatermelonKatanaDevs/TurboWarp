@@ -88,11 +88,13 @@ window.preload = function () {
     (function setRegistry(entry, tpoint) {
         Object.defineProperty(window, entry, {
             set: function (e) {
-                setTimeout(() => {
-                    if (p5Inst[entry] !== window[entry]) {
-                        p5Inst[entry + "_modify"] = "_EXCEPTION_: _OVERWRITTEN_";
-                    }
-                }, 1)
+                if(p5Inst[entry + "_modify"] !== "_EXCEPTION_: _OVERWRITTEN_") {
+                  setTimeout(() => {
+                      if (p5Inst[entry] !== window[entry]) {
+                          p5Inst[entry + "_modify"] = "_EXCEPTION_: _OVERWRITTEN_";
+                      }
+                  }, 1);
+                }
                 return tpoint = e;
             },
             get: function () {
