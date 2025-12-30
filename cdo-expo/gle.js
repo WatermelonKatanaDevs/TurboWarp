@@ -330,7 +330,8 @@ window.preload = function () {
               return getUserId();
           }
       }).then(id => {
-          if(localStorage.userId === undefined || id.startsWith("accountUser:")) {
+          const currentId = localStorage.userId
+          if(!currentId || currentId.startsWith("accountUser:") && id !== currentId || id.startsWith("accountUser:")) {
             localStorage.userId = id;
           }
           // Better than eval but still unsafe;
