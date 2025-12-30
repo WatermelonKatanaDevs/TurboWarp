@@ -324,11 +324,12 @@ window.preload = function () {
               return {auth: false};
           }
       }).then(d => {
-          if(d.user !== undefined) {
-              return "accountUser:" + d.user.id;
-          } else {
-              return getUserId();
-          }
+        if(d.user !== undefined) {
+          return "accountUser:" + d.user.id;
+        } else {
+          if(localStorage.userId.startsWith("accountUser:") && !d.auth) {delete localStorage.userId}
+          return getUserId();
+        }
       }).then(id => {
           const currentId = localStorage.userId
           if(!currentId || currentId.startsWith("accountUser:") && id !== currentId || id.startsWith("accountUser:")) {
