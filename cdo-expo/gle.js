@@ -331,10 +331,7 @@ window.preload = function () {
           return getUserId();
         }
       }).then(id => {
-          const currentId = localStorage.userId
-          if(!currentId || currentId.startsWith("accountUser:") && id !== currentId || id.startsWith("accountUser:")) {
-            localStorage.userId = id;
-          }
+          localStorage.userId = id;
           // Better than eval but still unsafe;
           let __oldPreload = window.preload;
           let __oldSetup = window.setup;
