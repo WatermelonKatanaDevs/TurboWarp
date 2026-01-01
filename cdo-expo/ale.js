@@ -74,7 +74,7 @@ async function getHTML(html, id, code) {
               if(d.user !== undefined) {
                 return "accountUser:" + d.user.id;
               } else {
-                if(localStorage.userId.startsWith("accountUser:") && !d.auth) {delete localStorage.userId}
+                if(localStorage.userId?.startsWith("accountUser:") && !d.auth) {delete localStorage.userId}
                 return getUserId();
               }
           }).then(id => {
