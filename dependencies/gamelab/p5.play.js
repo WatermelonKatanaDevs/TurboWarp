@@ -2663,20 +2663,17 @@ deltaTime = ((now - then) / 1000)/INTERVAL_60; // seconds since last frame
         this.draw = function () {
             if (currentAnimation !== '' && animations) {
                 if (animations[currentAnimation]) {
+                    push()
                     if (this.tint) {
-                        push()
                         tint(this.tint)
                     }
                     if (this.alpha < 1 && this.alpha > 0) {
-                        push()
                         alphaTint(this.alpha)
                     }
                     if (this.alpha > 0) {
                         animations[currentAnimation].draw(0, 0, 0)
                     }
-                    if ((this.alpha < 1 && this.alpha > 0) || this.tint) {
-                        pop()
-                    }
+                    pop()
                 }
             } else {
                 var fillColor = this.shapeColor
