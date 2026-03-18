@@ -414,6 +414,9 @@ async function getHTML(id, code) {
         __IFRRAME__.contentDocument.body.removeEventListener = function (element, event) {
           return document.body.removeEventListener(element, event);
         }
+        let script = document.createElement("script");
+        script.text = ${JSON.stringify(code)};
+        document.head.appendChild(script);
         // scaler
         const element = document.getElementById("sketch");
         function rescale() {
