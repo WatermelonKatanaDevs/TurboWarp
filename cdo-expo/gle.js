@@ -43,7 +43,7 @@ function getCode(json) {
 (function ${lib}() {\n${src}\nreturn(this)\n}).bind(${lib})();\n`
   })
   json.source = libraries + json.source;
-  // json.source = json.source.replace(/<\s*\/script\s*>/g, "<\\/script>");
+  json.source = json.source.replace(/<\s*\/script\s*>/g, "<\\/script>");
   animationList.orderedKeys.forEach((key) => {
     let animation = animationList.propsByKey[key]
     animation.rootRelativePath = `${animation.sourceUrl
@@ -336,7 +336,7 @@ window.preload = function () {
           let __oldPreload = window.preload;
           let __oldSetup = window.setup;
           let __script = document.createElement("script");
-          __script.textContent = ${JSON.stringify("p5Inst._startTime = Date.now();\np5Inst.frameCount = 0;\n" + json.source)};
+          __script.text = ${JSON.stringify("p5Inst._startTime = Date.now();\np5Inst.frameCount = 0;\n" + json.source)};
           document.body.appendChild(__script);
           try { window.draw = draw; } catch (e) {}
           switch (stage) {
