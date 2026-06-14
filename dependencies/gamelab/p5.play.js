@@ -2162,7 +2162,7 @@ deltaTime = ((now - then) / 1000)/INTERVAL_60; // seconds since last frame
          * Keep animation properties in sync with how the animation changes.
          */
         this._syncAnimationSizes = function (animations, currentAnimation) {
-            if (pInst._fixedSpriteAnimationFrameSizes) {
+            if (!pInst._fixedSpriteAnimationFrameSizes) {
                 return
             }
             if (
