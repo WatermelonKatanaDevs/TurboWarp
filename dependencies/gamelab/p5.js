@@ -23931,7 +23931,7 @@
                                 decrementPreload()
                             } else if (
                                 typeof failureCallback === 'function' &&
-                                failureCallback !== decrementPreload
+                                scope._preloadCount < 1
                             ) {
                                 failureCallback(e)
                             }
