@@ -34,7 +34,7 @@ function getCode(json) {
 (function ${lib}() {\n${src}\nreturn(this)\n}).bind(${lib})();\n`;
   });
   json.html.matchAll(/\<(button|img).*?id=["']([^"']+)["'].*?canonical-image-url=["']([^"']+)["']/g).forEach(icon => {
-    json.source = `setProperty("${icon[2]}", "image", "${icon[3]}")` + json.source;
+    json.source = `setProperty("${icon[2]}", "image", "${icon[3]}")\n` + json.source;
   });
   json.source = libraries + json.source;
   json.source = json.source.replace(/<\s*\/script\s*>/g, "<\\/script>");
