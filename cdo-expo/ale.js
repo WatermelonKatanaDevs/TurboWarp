@@ -126,7 +126,6 @@ async function getHTML(html, id, code) {
     <script src="https://www.google.com/jsapi"></script>
     <link rel="stylesheet" href="${dependency}/CSS/applab.css">
     <link rel="stylesheet" href="${dependency}/CSS/style.css">
-    <link rel="stylesheet" media="all" href="${dependency}/CSS/fonts.css">
   </head>
   <body>
   <div id="divApplab" class="appModern running" tabindex="1" style="position: absolute; top: 0px; left: 0px; width: 320px; height: 450px; display: block;">
