@@ -63,8 +63,8 @@ async function getHTML(html, id, code) {
       iframe.addEventListener("load",()=>{
       iframe.addEventListener = function (element, event, callback) {return document.body.addEventListener(element, event, callback)};
       for(var global in window.Global){iframe.contentWindow[global]=window[global]};
-      setProperty("dummy", "image", "icon://fa-search");
-      setTimeout(function(){document.body.querySelector("#dummy").remove()}, 3e3)
+      setProperty("BBA1E1582A51E627F185162F66A03477", "image", "icon://fa-search");
+      setTimeout(function(){document.body.querySelector("#BBA1E1582A51E627F185162F66A03477").remove()}, 3e3)
       ;(function() {
         return fetch("/api/auth/check").then(r => {
               if (r.status === 200) {
@@ -131,7 +131,7 @@ async function getHTML(html, id, code) {
   </head>
   <body>
   <div id="divApplab" class="appModern running" tabindex="1" style="position: absolute; top: 0px; left: 0px; width: 320px; height: 450px; display: block;">
-  <button id="dummy" style="display: none; position: fixed"></button>
+  <button id="BBA1E1582A51E627F185162F66A03477" style="display: none; position: fixed"></button>
   ${html.match(/<div[^>]*class="screen".*/g)[0]}
   </body>
   </html>`;
