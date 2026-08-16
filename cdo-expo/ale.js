@@ -7,11 +7,11 @@ const canvas = require("canvas");
 const startPath = "https://studio.code.org";
 const jsdom = require("jsdom");
 //let animations = `${startPath}/v3/animations/`;
+
 canvas.registerFont("./Turbo/dependencies/fonts/fa-brands-400.ttf", { family: "FontAwesome" });
 //canvas.registerFont("./fonts/fa-regular-400.ttf", {family: "FontAwesome"}) doesn't seem like this one is used??
 canvas.registerFont("./Turbo/dependencies/fonts/fa-solid-900.ttf", { family: "FontAwesome" })
 canvas.registerFont("./Turbo/dependencies/fonts/fa-v4compatibility.ttf", { family: "FontAwesome" })
-
 //exportProject("pNfF6pjzbWtCgdsls0ofkSpt0yxmK29_e8iGJJtXWpI")
 
 async function exportProject(id) {
@@ -63,6 +63,8 @@ async function getHTML(html, id, code) {
       iframe.addEventListener("load",()=>{
       iframe.addEventListener = function (element, event, callback) {return document.body.addEventListener(element, event, callback)};
       for(var global in window.Global){iframe.contentWindow[global]=window[global]};
+      setProperty("dummy", "image", "icon://fa-search");
+      setTimeout(function(){document.body.querySelector("#dummy").remove()}, 3e3)
       ;(function() {
         return fetch("/api/auth/check").then(r => {
               if (r.status === 200) {
@@ -129,10 +131,10 @@ async function getHTML(html, id, code) {
   </head>
   <body>
   <div id="divApplab" class="appModern running" tabindex="1" style="position: absolute; top: 0px; left: 0px; width: 320px; height: 450px; display: block;">
+  <button id="dummy" style="display: none; position: fixed"></button>
   ${html.match(/<div[^>]*class="screen".*/g)[0]}
   </body>
   </html>`;
-  return html;
   let page = new jsdom.JSDOM(html);
   let icons = page.window.document.querySelectorAll('[data-canonical-image-url]');
   icons.forEach((icon) => {
