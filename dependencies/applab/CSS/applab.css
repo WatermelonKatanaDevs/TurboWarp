@@ -2240,7 +2240,6 @@ div.WireframeButtons_active {
 #divApplab div,
 #designModeViz div,
 .draggingParent div {
-  position: absolute;
   overflow: hidden;
 }
 #divApplab div.textArea,
