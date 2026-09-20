@@ -144,6 +144,7 @@ body {
   background-color: #f2f2f2;
   font-weight: normal;
   margin: 0;
+  overflow: hidden;
 }
 
 h1 {
