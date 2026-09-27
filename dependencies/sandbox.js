@@ -63,10 +63,10 @@
     },
   });
 
-  let wkuserdata = { loggedIn: false };
-  window.getwkuserdata = function () {
-    return wkuserdata === "disallowed" ? "User disallowed sharing user data" : wkuserdata;
-  };
+  // let wkuserdata = { loggedIn: false };
+  // window.getwkuserdata = function () {
+  //   return wkuserdata === "disallowed" ? "User disallowed sharing user data" : wkuserdata;
+  // };
 
   window.turbowarphost = new Promise((resolve) => {
     if (!inframe) {
@@ -80,9 +80,9 @@
       }
       window.removeEventListener("message", listen);
       clearTimeout(timer);
-      if (typeof data.wkuser !== "undefined") {
-        wkuserdata = data.wkuser;
-      }
+      // if (typeof data.wkuser !== "undefined") {
+      //   wkuserdata = data.wkuser;
+      // }
       if (data.storage && typeof data.storage === "object") {
         for (const key of Object.keys(data.storage)) {
           local.items.set(key, String(data.storage[key]));

@@ -59,16 +59,17 @@ function playerpage(id) {
               .catch(() => ({}))
               .then((d) => {
                 const userid = d.user ? "accountUser:" + d.user.id : null;
-                const abs = (u) => (typeof u === "string" && u.charAt(0) === "/" ? location.origin + u : u);
-                let wkuser;
-                if (!d.user) {
-                  wkuser = { loggedIn: false };
-                } else if (d.user.allowuserdata) {
-                  wkuser = { loggedIn: true, name: d.user.username, avatar: abs(d.user.avatar), banner: abs(d.user.banner), role: d.user.role };
-                } else {
-                  wkuser = "disallowed";
-                }
-                frame.contentWindow.postMessage({ turbowarp: "init", userid, wkuser, storage: load() }, "*");
+                // const abs = (u) => (typeof u === "string" && u.charAt(0) === "/" ? location.origin + u : u);
+                // let wkuser;
+                // if (!d.user) {
+                //   wkuser = { loggedIn: false };
+                // } else if (d.user.allowuserdata) {
+                //   wkuser = { loggedIn: true, name: d.user.username, avatar: abs(d.user.avatar), banner: abs(d.user.banner), role: d.user.role };
+                // } else {
+                //   wkuser = "disallowed";
+                // }
+                // frame.contentWindow.postMessage({ turbowarp: "init", userid, wkuser, storage: load() }, "*");
+                frame.contentWindow.postMessage({ turbowarp: "init", userid, storage: load() }, "*");
               });
           } else if (data.turbowarp === "storage" && ready) {
             write(data);
