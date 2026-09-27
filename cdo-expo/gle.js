@@ -1,55 +1,20 @@
 // const fs = require("fs");
 const request = require('./requests')
+const { escapehtml, inline, wraplibraries } = require('./format')
 const startPath = 'https://studio.code.org'
-let animations = `${startPath}/v3/animations/`
 
-async function exportProject(id) {
-  animations = `${startPath}/v3/animations/`
-  assets = `${startPath}/v3/assets/`
-  return new Promise(async (resolve, reject) => {
-    animations += id + '/'
-    let source = await getJSON(id)
-    resolve(await getHTML(id, getCode(source)))
-  })
+async function exportProject(id, channel) {
+  const source = await request.send(`${startPath}/v3/sources/${id}/main.json`, 'json')
+  return getHTML(id, channel.name, getCode(source, `${startPath}/v3/animations/${id}/`))
 }
 
-async function getJSON(id) {
-  return new Promise((resolve, reject) => {
-    request
-      .send(`${startPath}/v3/sources/${id}/main.json`, 'json')
-      .then((data) => {
-        resolve(data)
-      })
-      .catch((err) => {
-        reject(err)
-      })
-  })
-}
-
-function getCode(json) {
-  let animationList = json.animations;
-  let libraries = ``;
-  json.libraries = json.libraries || []
-  json.libraries.forEach((library) => {
-    let lib = library.name
-    let src = library.source
-    let funcs = library.functions.join('|')
-    let pattern = new RegExp(
-      `(?<!\\(\\s*|(?<!\\/\\/.*|\\/\\*[^\\*\\/]*|["'][^'"]*)function\\s+[\\S]+\\s*\\(\\)\\s*{[^}]+)function\\s+(${funcs})\\s*(?=\\()`,
-      'g'
-    )
-    src = src.replace(pattern, `var $1 = this.$1 = function`)
-    libraries += `var ${lib} = window[${JSON.stringify(lib)}] || {};
-(function ${lib}() {\n${src}\nreturn(this)\n}).bind(${lib})();\n`
-  })
-  json.source = libraries + json.source;
-  json.source = json.source.replace(/<\s*\/script\s*>/g, "<\\/script>");
+function getCode(json, animations) {
+  let animationList = json.animations || { orderedKeys: [], propsByKey: {} }
+  json.source = wraplibraries(json)
   animationList.orderedKeys.forEach((key) => {
     let animation = animationList.propsByKey[key]
-    animation.rootRelativePath = `${animation.sourceUrl
-        ? `/media?u=${startPath}/${animation.sourceUrl}`
-        : `/media?u=${animations + key}.png`
-      }`
+    let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`
+    animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`
   })
   return `var p5Inst = new p5(null, 'sketch');
 
@@ -84,7 +49,7 @@ window.preload = function () {
         return;
       }
     }
-  for (entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_targetFrameRate", "windowWidth", "windowHeight", "_curElement", "canvas", "width", "height", "_textLeading", "_textSize", "_textStyle", "_textAscent", "_textDescent", "imageData", "pixels", "pAccelerationX", "pAccelerationY", "pAccelerationZ", "pRotationX", "pRotationY", "pRotationZ", "rotationX", "rotationY", "rotationZ", "deviceOrientation", "turnAxis", "isKeyPressed", "keyIsPressed", "keyCode", "key", "_lastKeyCodeTyped", "mouseX", "mouseY", "winMouseX", "winMouseY", "_hasMouseInteracted", "pmouseX", "pmouseY", "pwinMouseX", "pwinMouseY", "mouseButton", "isMousePressed", "mouseIsPressed", "touches", "touchX", "touchY", "winTouchX", "winTouchY", "_hasTouchInteracted", "ptouchX", "ptouchY", "pwinTouchX", "pwinTouchY", "touchIsDown", "_textFont", "tex", "isTexture"]) {
+  for (let entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_targetFrameRate", "windowWidth", "windowHeight", "_curElement", "canvas", "width", "height", "_textLeading", "_textSize", "_textStyle", "_textAscent", "_textDescent", "imageData", "pixels", "pAccelerationX", "pAccelerationY", "pAccelerationZ", "pRotationX", "pRotationY", "pRotationZ", "rotationX", "rotationY", "rotationZ", "deviceOrientation", "turnAxis", "isKeyPressed", "keyIsPressed", "keyCode", "key", "_lastKeyCodeTyped", "mouseX", "mouseY", "winMouseX", "winMouseY", "_hasMouseInteracted", "pmouseX", "pmouseY", "pwinMouseX", "pwinMouseY", "mouseButton", "isMousePressed", "mouseIsPressed", "touches", "touchX", "touchY", "winTouchX", "winTouchY", "_hasTouchInteracted", "ptouchX", "ptouchY", "pwinTouchX", "pwinTouchY", "touchIsDown", "_textFont", "tex", "isTexture"]) {
     (function setRegistry(entry, tpoint) {
         Object.defineProperty(window, entry, {
             set: function (e) {
@@ -317,17 +282,11 @@ window.preload = function () {
     }
   })
   ;(function() {
-      return fetch("/api/auth/check").then(r => {
-          if (r.status === 200) {
-              return r.json();
-          } else {
-              return {auth: false};
-          }
-      }).then(d => {
-        if(d.user !== undefined) {
-          return "accountUser:" + d.user.id;
+      return turbowarphost.then(d => {
+        if(d.userid) {
+          return d.userid;
         } else {
-          if(localStorage.userId?.startsWith("accountUser:") && !d.auth) {delete localStorage.userId}
+          if(localStorage.userId?.startsWith("accountUser:")) {delete localStorage.userId}
           return getUserId();
         }
       }).then(id => {
@@ -345,7 +304,7 @@ window.preload = function () {
               break;
             case 'setup':
               if (__oldSetup !== window.setup) { 
-                if(__oldPreload !== window.prelaod) { preload(); }
+                if(__oldPreload !== window.preload) { preload(); }
                 setup();
               }
               break;
@@ -368,54 +327,30 @@ window.setup = function () {
 
 //* Old Code
 
-async function getHTML(id, code) {
-  return Promise.resolve(
-    await request
-      .send(`${startPath}/v3/channels/${id}`, 'json')
-      .then(async (data) => {
-        const dependency = '/turbowarp/gamelab'
-        return `<html>
+function getHTML(id, name, code) {
+  const dependency = '/turbowarp/gamelab'
+  return `<html>
   <head>
-    <title> ${data.name} </title>
+    <title>${escapehtml(name)}</title>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1">
+      <script src="/turbowarp/sandbox.js"></script>
       <link href="${dependency}/gamelab.css" rel="stylesheet" type="text/css">
       <script src="${dependency}/p5.js"></script>
       <script src="${dependency}/p5.play.js"></script>
       <script>
-        let __IFRRAME__ = document.createElement("iframe");
-        __IFRRAME__.srcdoc = \`<script> window._FCONFIG_ = { channel: "${id}", useDatablockStorage: true };
+        window._FCONFIG_ = { channel: "${id}", useDatablockStorage: true };
         function setExportConfig(config) { _FCONFIG_ = Object.assign(_FCONFIG_, config) }
-      <\\/script>
-      <script src="https://studio.code.org/projects/gamelab/${id}/export_config?script_call=setExportConfig"><\\/script>
-      <script src="https://code.jquery.com/jquery-1.12.1.min.js"><\\/script>
-      <script src="${dependency}/gamelab-api.js"><\\/script>\`;
-        document.head.appendChild(__IFRRAME__);
-        __IFRRAME__.contentWindow.p5 = window.p5;
-        __IFRRAME__.addEventListener("load", () => {
-        const globalExports = ["_FCONFIG_", "getUserId", "setKeyValue", "getKeyValue", "getTime", "promptNum", "playSound", "playSpeech", "randomNumber", "stopSound", "initMobileControls", "showMobileControls", "timedLoop", "stopTimedLoop", "appendItem", "insertItem", "removeItem"];
-        for (let global of globalExports) {
-          window[global] = __IFRRAME__.contentWindow[global];
-        };
+      </script>
+      <script src="https://studio.code.org/projects/gamelab/${id}/export_config?script_call=setExportConfig"></script>
+      <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
+      <script src="${dependency}/gamelab-api.js"></script>
+      <script>
+        window.addEventListener("DOMContentLoaded", () => {
         _FCONFIG_.url = (function(){var url="https://studio.code.org/projects/gamelab/${id}";var params=location.search;if(params.startsWith("?u=")){params=params.slice(3)}var re=/[?&]([^&=]+)(?:[&=])([^&=]+)/gim;var m;while((m=re.exec(params))!=null){if(m.index===re.lastIndex){re.lastIndex+=1}url+=m[0]}return url})();
         _FCONFIG_.pathname = "projects/gamelab/${id}";
-        __IFRRAME__.contentDocument.getElementById = function (id) {
-          return document.getElementById(id);
-        }
-        __IFRRAME__.contentDocument.addEventListener = function (element, event, callback) {
-          return document.addEventListener(element, event, callback);
-        }
-        __IFRRAME__.contentDocument.body.addEventListener = function (element, event, callback) {
-          return document.body.addEventListener(element, event, callback);
-        }
-        __IFRRAME__.contentDocument.removeEventListener = function (element, event) {
-          return document.removeEventListener(element, event);
-        }
-        __IFRRAME__.contentDocument.body.removeEventListener = function (element, event) {
-          return document.body.removeEventListener(element, event);
-        }
         let script = document.createElement("script");
-        script.text = ${JSON.stringify(code)};
+        script.text = ${inline(code)};
         document.head.appendChild(script);
         // scaler
         const element = document.getElementById("sketch");
@@ -454,8 +389,6 @@ async function getHTML(id, code) {
   </div>
 </body>
 </html>`
-      })
-  )
 }
 
 module.exports = {

@@ -18,72 +18,104 @@ const ProjectDataSchema = new Mongoose.Schema(
 
 const ProjectData = Mongoose.model('projectdata', ProjectDataSchema)
 
+const columntypes = ['string', 'number', 'boolean']
+
+function checkname(value, label) {
+    if (typeof value !== 'string' || value === '' || value === '__proto__')
+        throw `invalid ${label} "${value}"`
+    return value
+}
+
+function checkcolumn(value) {
+    if (checkname(value, 'column') === 'id') throw `the id column cannot be modified`
+    return value
+}
+
+function parse(value) {
+    return typeof value === 'string' ? JSON.parse(value) : value
+}
+
+function isrecord(value) {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function mark(doc, field, key) {
+    doc.markModified(/^[^.$][^.]*$/.test(key) ? `${field}.${key}` : field)
+}
+
 // Database
 const TurboDB = async function (id) {
     var db = {}
-    db._changed = false
     db._read = true
-    db._data = await ProjectData.findOne({ _id: id })
-    if (!db._data) {
-        db._data = await ProjectData.create({ _id: id })
+    db._data = (await ProjectData.findOne({ _id: id })) || new ProjectData({ _id: id })
+    db.gettable = function (table_name) {
+        let tables = this._data.tables
+        if (typeof table_name !== 'string' || !Object.hasOwn(tables, table_name))
+            throw `no table found at "${table_name}"`
+        return tables[table_name]
     }
     db.getKeyValue = function (key) {
-        return this._data.keyvalues[key] !== undefined ? this._data.keyvalues[key]: JSON.stringify(null)
+        let keyvalues = this._data.keyvalues
+        return typeof key === 'string' && Object.hasOwn(keyvalues, key) ? keyvalues[key] : JSON.stringify(null)
     }
     db.getAllKeyValues = function () {
         return this._data.keyvalues
     }
     db.setKeyValue = function (key, value) {
-        this._data.keyvalues[key] = value
-        this._data.markModified(`keyvalues.${key}`)
+        this._data.keyvalues[checkname(key, 'key')] = value
+        mark(this._data, 'keyvalues', key)
         return true
     }
     db.populateKeyValues = function (map) {
-        map = typeof map === "string" ? JSON.parse(map): map;
-        for (i in map) {
-            this._data.keyvalues[i] = map[i];
-            this._data.markModified(`keyvalues.${i}`)
+        map = parse(map)
+        if (!isrecord(map)) throw `invalid key value map`
+        let keys = Object.keys(map)
+        keys.forEach((key) => checkname(key, 'key'))
+        for (let key of keys) {
+            this._data.keyvalues[key] = map[key]
         }
+        this._data.markModified('keyvalues')
         return true
     }
     db.deleteKeyValue = function (key) {
-        delete this._data.keyvalues[key]
-        this._data.markModified(`keyvalues.${key}`)
+        let keyvalues = this._data.keyvalues
+        if (typeof key === 'string' && Object.hasOwn(keyvalues, key)) {
+            delete keyvalues[key]
+            mark(this._data, 'keyvalues', key)
+        }
         return true
     }
     // table paths
     db.createRecord = function (table_name, record_json) {
-        if(typeof table_name !== "string") { throw "invalid argument table" }
-        let table = this._data.tables
-        record_json = typeof record_json === "string" ? JSON.parse(record_json): record_json;
-        if (table[table_name] === undefined) {
-            table[table_name] = { records: [], nextId: 1 }
+        checkname(table_name, 'table')
+        record_json = parse(record_json)
+        if (!isrecord(record_json)) throw `invalid record for table "${table_name}"`
+        let tables = this._data.tables
+        if (!Object.hasOwn(tables, table_name)) {
+            tables[table_name] = { records: [], nextId: 1 }
         }
-        // table[table_name].id = table[table_name].nextId++
-        record_json.id = table[table_name].nextId++;
-        table[table_name].records.push(record_json)
-        this._data.markModified(`tables.${table_name}`)
-        return { table_name, record_json }
+        let table = tables[table_name]
+        record_json.id = table.nextId++
+        table.records.push(record_json)
+        mark(this._data, 'tables', table_name)
+        return record_json
     }
     db.createTable = function (table_name) {
-        if (typeof table_name !== 'string')
-            throw `unable to create a table wihout a name`
-        let table = this._data.tables
-        if (table[table_name] === undefined)
-            table[table_name] = { records: [], nextId: 1 }
-        this._data.markModified(`tables.${table_name}`)
+        checkname(table_name, 'table')
+        let tables = this._data.tables
+        if (!Object.hasOwn(tables, table_name)) {
+            tables[table_name] = { records: [], nextId: 1 }
+            mark(this._data, 'tables', table_name)
+        }
         return true
     }
     db.addColumn = function (column_name, table_name) {
-        if (typeof column_name !== 'string' || typeof table_name !== 'string')
-            throw `invalid argument table "${table_name}" or column "${column_name}"`
-        let table = this._data.tables[table_name]
-        if (table === undefined)
-            throw `unable to create a column without a table`
+        checkname(column_name, 'column')
+        let table = this.gettable(table_name)
         for (let record of table.records) {
-            record[column_name] = null
+            if (!Object.hasOwn(record, column_name)) record[column_name] = null
         }
-        this._data.markModified(`tables.${table_name}.records`)
+        mark(this._data, 'tables', table_name)
         return true
     }
     /*db.add_shared_table = function(table_name) {
@@ -102,101 +134,84 @@ const TurboDB = async function (id) {
     return true;
   };*/
     db.populateTables = function (map) {
-        let table = this._data.tables
-        map = typeof map === "string" ? JSON.parse(map): map;
-        for (var t in map) {
-            let nextId = 1
-            if (table[t] === undefined) table[t] = { records: [], nextId: 1 }
-            table[t].records = map[t]
-            for (let i = 0; i < table[t].records.length; i++) {
-                let id = table[t].records[i].id
-                if(typeof id === "number") {
-                    nextId = Math.max(nextId, id) + 1
-                } else {
-                    table[t].records[i].id = nextId++
-                }
-            }
-            table[t].nextId = nextId
-            this._data.markModified(`tables.${t}`)
+        map = parse(map)
+        if (!isrecord(map)) throw `invalid table map`
+        let names = Object.keys(map)
+        for (let name of names) {
+            checkname(name, 'table')
+            if (!Array.isArray(map[name]) || !map[name].every(isrecord))
+                throw `invalid records for table "${name}"`
         }
+        let tables = this._data.tables
+        for (let name of names) {
+            let records = map[name]
+            let nextId = records.reduce((max, record) => (Number.isInteger(record.id) ? Math.max(max, record.id + 1) : max), 1)
+            for (let record of records) {
+                if (!Number.isInteger(record.id)) record.id = nextId++
+            }
+            tables[name] = { records, nextId }
+        }
+        this._data.markModified('tables')
         return true
     }
     db.updateRecord = function (table_name, record_json) {
-        if(typeof table_name !== "string") { throw "invalid argument table"}
-        let table = this._data.tables
-        table = table[table_name]
-        record_json = typeof record_json === "string" ? JSON.parse(record_json): record_json;
-        for (let i = 0; i < table.records.length; i++) {
-            let record = table.records[i]
-            if (record.id === record_json.id) {
-                table.records[i] = record_json
-                this._data.markModified(`tables.${table_name}.records`)
-                break
-            }
-        }
-        return table.records
+        let table = this.gettable(table_name)
+        record_json = parse(record_json)
+        if (!isrecord(record_json)) throw `invalid record for table "${table_name}"`
+        let index = table.records.findIndex((record) => record.id === record_json.id)
+        if (index < 0) return null
+        table.records[index] = record_json
+        mark(this._data, 'tables', table_name)
+        return record_json
     }
     db.renameColumn = function (table_name, old_column_name, new_column_name) {
-        let table = this._data.tables[table_name]
-        if (
-            typeof old_column_name !== 'string' ||
-            typeof new_column_name !== 'string' ||
-            table === undefined
-        )
-            throw `invalid argument on table "${table_name}" column "${old_column_name}" new column "${new_column_name}"`
+        let table = this.gettable(table_name)
+        checkcolumn(old_column_name)
+        checkcolumn(new_column_name)
+        if (old_column_name === new_column_name) return true
         for (let record of table.records) {
-            record[new_column_name] = record[old_column_name]
-            delete record[old_column_name]
+            if (Object.hasOwn(record, old_column_name)) {
+                record[new_column_name] = record[old_column_name]
+                delete record[old_column_name]
+            }
         }
-        this._data.markModified(`tables.${table_name}.records`);
+        mark(this._data, 'tables', table_name)
         return true
     }
     db.coerceColumn = function (table_name, column_name, column_type) {
-        let table = this._data.tables[table_name]
-        if (
-            typeof column_name !== 'string' ||
-            column_type.match(/string|number|boolean/) === null ||
-            table === undefined
-        )
+        let table = this.gettable(table_name)
+        checkcolumn(column_name)
+        if (!columntypes.includes(column_type))
             throw `invalid argument on table "${table_name}" column "${column_name}" type "${column_type}"`
         for (let record of table.records) {
+            let value = record[column_name]
             switch (column_type) {
                 case 'boolean': {
-                    record[column_name] = Boolean(record[column_name])
+                    record[column_name] = typeof value === 'string' ? value.trim().toLowerCase() === 'true' : Boolean(value)
                     break
                 }
                 case 'number': {
-                    record[column_name] = Number(record[column_name])
+                    record[column_name] = Number(value)
                     break
                 }
                 case 'string': {
-                    record[column_name] = String(record[column_name])
+                    record[column_name] = String(value)
                     break
                 }
             }
         }
-        this._data.markModified(`tables.${table_name}.records`)
+        mark(this._data, 'tables', table_name)
         return true
     }
     db.getColumn = function (table_name, column_name) {
-        let table = this._data.tables[table_name];
-        let column = [];
-        for(let record of table.records) {
-            column.push((record[column_name] !== undefined ? record[column_name]: null))
-        }
-        return(column);
+        return this.gettable(table_name).records.map((record) => (record[column_name] !== undefined ? record[column_name] : null))
     }
-    db.getColumnsForTable = function () {
-        const columns = ['id']
-        let { table_name } = req.query
-        let table = this._data.tables[table_name]
-        if (table === undefined) throw `no table found at "${table_name}"`
-        for (let record of table.records) {
-            for (let p in record) {
-                if (columns.indexOf(p) < 0) columns.push(p)
-            }
+    db.getColumnsForTable = function (table_name) {
+        const columns = new Set(['id'])
+        for (let record of this.gettable(table_name).records) {
+            for (let p in record) columns.add(p)
         }
-        return columns
+        return [...columns]
     }
     /*db.export_csv = function() {
     let { table_name } = req.query;
@@ -206,46 +221,35 @@ fs.writeFileSync(`${self.csvPath}/${table_name}.csv`, self.jsonToCSV(table.recor
     return true;
   };*/
     db.readRecords = function (table_name) {
-        let table = this._data.tables[table_name]
-        if (table === undefined) throw `failed to read table ${table_name}`
-        return table.records
+        return this.gettable(table_name).records
     }
     db.clearTable = function (table_name) {
-        let table = this._data.tables
-        if (table[table_name] === undefined)
-            throw `failed to clear table "${table_name}"`
-        table[table_name] = { records: [], nextId: 1 }
-        this._data.markModified(`tables.${table_name}`)
+        this.gettable(table_name)
+        this._data.tables[table_name] = { records: [], nextId: 1 }
+        mark(this._data, 'tables', table_name)
         return true
     }
     db.deleteRecord = function (table_name, record_id) {
-        let table = this._data.tables[table_name]
-        let index = table.records.findIndex(o=>o.id===record_id)
-        if (table === undefined || index < 0) { 
-            throw `failed to remove record on table "${table_name}" at id "${record_id}"`
-        }
+        let table = this.gettable(table_name)
+        let index = table.records.findIndex((record) => record.id === Number(record_id))
+        if (index < 0) throw `failed to remove record on table "${table_name}" at id "${record_id}"`
         table.records.splice(index, 1)
-        this._data.markModified(`tables.${table_name}.records`)
+        mark(this._data, 'tables', table_name)
         return true
     }
     db.deleteColumn = function (table_name, column_name) {
-        let table = this._data.tables[table_name]
-        if (table === undefined)
-            throw `failed to remove column on table "${table_name}" at column "${column_name}"`
+        let table = this.gettable(table_name)
+        checkcolumn(column_name)
         for (let record of table.records) {
-            if (record[column_name] !== undefined) {
-                delete record[column_name]
-            }
+            delete record[column_name]
         }
-        this._data.markModified(`tables.${table_name}.records`)
+        mark(this._data, 'tables', table_name)
         return { table_name, column_name }
     }
     db.deleteTable = function (table_name) {
-        let table = this._data.tables
-        if (table[table_name] === undefined)
-            throw `failed to delete the table "${table_name}"`
-        delete table[table_name]
-        this._data.markModified(`tables.${table_name}`)
+        this.gettable(table_name)
+        delete this._data.tables[table_name]
+        mark(this._data, 'tables', table_name)
         return true
     }
     db.getTableNames = function () {
@@ -272,19 +276,23 @@ fs.writeFileSync(`${self.csvPath}/${table_name}.csv`, self.jsonToCSV(table.recor
 
 // Api Interface
 var TurboDBList = {}
+var loading = {}
 setInterval(() => {
-    for (var i in TurboDBList) {
-        if (TurboDBList[i]._data.isModified()) {
+    for (let i in TurboDBList) {
+        let db = TurboDBList[i]
+        let doc = db._data
+        if (doc.isNew ? db.projectHasData() : doc.isModified()) {
             console.log('Saving changes to ' + i)
-            TurboDBList[i]._data.save()
-        }
-        if (!TurboDBList[i]._read) {
+            doc.save().catch((err) => {
+                console.log('Failed to save ' + i, err)
+                if (TurboDBList[i] === db) delete TurboDBList[i]
+            })
+        } else if (!db._read) {
             console.log('Removing ' + i + ' from RAM')
             delete TurboDBList[i]
             continue
         }
-        TurboDBList[i]._changed = false
-        TurboDBList[i]._read = false
+        db._read = false
     }
 }, 60 * 1000)
 function createLink(app, method, name, callback) {
@@ -292,19 +300,21 @@ function createLink(app, method, name, callback) {
         // console.log(method, name, req.params.id, req.query, req.body)
         try {
             const id = req.params.id
+            if (!/^[\w-]{1,64}$/.test(id)) throw `invalid project id "${id}"`
             var db = TurboDBList[id]
             if (db === undefined) {
-                db = await TurboDB(id)
-                TurboDBList[id] = db
+                loading[id] = loading[id] || TurboDB(id).finally(() => delete loading[id])
+                db = TurboDBList[id] = await loading[id]
             }
             db._read = true
             // console.log(db)
             var ret = await callback(db, req)
             // console.log(ret)
-            res.status(200).send(ret)
+            res.status(200).type('json').set('X-Content-Type-Options', 'nosniff')
+                .send(typeof ret === 'string' ? ret : JSON.stringify(ret))
         } catch (e) {
             console.log(e)
-            res.status(400).send({ Error: e })
+            res.status(400).json({ Error: String(e) })
         }
     })
 }
@@ -321,7 +331,7 @@ module.exports = {
             db.populateKeyValues(req.body.key_values_json)
         )
         c(a, 'delete', 'delete_key_value', (db, req) =>
-            db.setKeyValue(req.body.key)
+            db.deleteKeyValue(req.body.key)
         )
         c(a, 'post', 'create_record', (db, req) =>
             db.createRecord(req.body.table_name, req.body.record_json)

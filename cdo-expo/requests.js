@@ -1,18 +1,11 @@
 const fetch = require('cross-fetch');
-function send(url, type) {
-  return new Promise((resolve, reject) => {
-    fetch(url).then(response => {
-      if (response.status < 206) {
-        return response[type]();
-      } else {
-        reject(response.status);
-      }
-    }).then(data => {
-      resolve(data);
-    }).catch(err => {
-      reject("error request invalid");
-    });
-  })
+
+async function send(url, type) {
+  const response = await fetch(url, { timeout: 1e4 });
+  if (response.status >= 206) {
+    throw response.status;
+  }
+  return response[type]();
 }
 
 module.exports = { send };

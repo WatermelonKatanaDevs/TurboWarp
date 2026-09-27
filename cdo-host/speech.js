@@ -52,9 +52,13 @@ const voices = [
   "vi",
   "cy",
 ];
+const maxlength = 1000;
 function talkStream(text, voice) {
   return new Promise((resolve, reject) => {
-    voice = voices.indexOf(voice) ? voice : "en-us";
+    if (typeof text !== "string" || text.trim() === "" || text.length > maxlength) {
+      return reject(`text must be a non-empty string of at most ${maxlength} characters`);
+    }
+    voice = voices.includes(voice) ? voice : "en-us";
     let speech = new gTTS(text, voice);
     if(speech.stream) {
       resolve(speech.stream())
