@@ -300,7 +300,7 @@ window.preload = function () {
           try { window.draw = draw; } catch (e) {}
           switch (stage) {
             case 'preload':
-              if (__oldPreload !== window.preload) { preload(); }
+              // if (__oldPreload !== window.preload) { preload(); }
               break;
             case 'setup':
               if (__oldSetup !== window.setup) { 
