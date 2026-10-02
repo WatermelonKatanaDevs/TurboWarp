@@ -24,7 +24,7 @@ function getCode(json, animations) {
           return getUserId();
         }
       }).then(id => {
-        var p5Inst = new p5(null, 'sketch');
+        window.p5Inst = new p5(null, 'sketch');
 
         window.preload = function () {
             initMobileControls(p5Inst);
