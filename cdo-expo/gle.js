@@ -16,9 +16,8 @@ function getCode(json, animations) {
     let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`
     animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`
   })
-  return `var p5Inst = new p5(null, 'sketch');
-
-window.preload = function () {
+  return `window.preload = function () {
+  var p5Inst = new p5(null, 'sketch');
   initMobileControls(p5Inst);
 
   p5Inst._predefinedSpriteAnimations = {};
