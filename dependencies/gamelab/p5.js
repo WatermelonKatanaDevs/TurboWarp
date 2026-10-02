@@ -23944,14 +23944,14 @@
                         // so we don't need to worry about crossOrigin with base64 file types
                         if (path.indexOf('data:image/') !== 0) {
                             img.crossOrigin = 'Anonymous'
-                            // path =
-                            //     path.match(/^(assets|\/media)/) !== null
-                            //         ? path
-                            //         : path.match(
-                            //                 /(https?:\/\/|www\.|ftp:\/\/|sftp:\/\/|ftps:\/\/|mailto:|git:\/\/)/i
-                            //             )
-                            //           ? '/media?u=' + encodeURIComponent(path)
-                            //           : `/media?u=https://studio.code.org/v3/assets/${_FCONFIG_.channel}/${path}`
+                            path =
+                                path.match(/^(assets|\/media)/) !== null
+                                    ? path
+                                    : path.match(
+                                            /(https?:\/\/|www\.|ftp:\/\/|sftp:\/\/|ftps:\/\/|mailto:|git:\/\/)/i
+                                        )
+                                      ? '/media?u=' + encodeURIComponent(path)
+                                      : `/media?u=https://studio.code.org/v3/assets/${_FCONFIG_.channel}/${path}`
                         }
 
                         //start loading the image
@@ -25861,14 +25861,14 @@
                             this,
                             arguments
                         )
-                        // path =
-                        //     path.match(/^(assets|\/media)/) !== null
-                        //         ? path
-                        //         : path.match(
-                        //                 /(https?:\/\/|www\.|ftp:\/\/|sftp:\/\/|ftps:\/\/|mailto:|git:\/\/)/i
-                        //             )
-                        //           ? '/media?u=' + encodeURIComponent(path)
-                        //           : `/media?u=https://studio.code.org/v3/assets/${_FCONFIG_.channel}/${path}`
+                        path =
+                            path.match(/^(assets|\/media)/) !== null
+                                ? path
+                                : path.match(
+                                        /(https?:\/\/|www\.|ftp:\/\/|sftp:\/\/|ftps:\/\/|mailto:|git:\/\/)/i
+                                    )
+                                  ? '/media?u=' + encodeURIComponent(path)
+                                  : `/media?u=https://studio.code.org/v3/assets/${_FCONFIG_.channel}/${path}`
 
                         opentype.load(path, function (err, font) {
                             if (err) {
