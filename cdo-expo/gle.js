@@ -16,8 +16,9 @@ function getCode(json, animations) {
     let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`
     animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`
   })
-  return `window.preload = function () {
-  var p5Inst = new p5(null, 'sketch');
+  return `var p5Inst = new p5(null, 'sketch');
+
+window.preload = function () {
   initMobileControls(p5Inst);
 
   p5Inst._predefinedSpriteAnimations = {};
@@ -40,14 +41,14 @@ function getCode(json, animations) {
     });
   });
 
-  function wrappedExportedCode(stage) {
-    if (stage === 'preload') {
-      if (setup !== window.setup) {
-        window.setup = setup;
-      } else {
-        return;
-      }
-    }
+function wrappedExportedCode(stage) {
+  if (stage === 'preload') {
+    if (setup !== window.setup) {
+      window.setup = setup;
+    } else {
+      return;
+  }
+}
   for (let entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_targetFrameRate", "windowWidth", "windowHeight", "_curElement", "canvas", "width", "height", "_textLeading", "_textSize", "_textStyle", "_textAscent", "_textDescent", "imageData", "pixels", "pAccelerationX", "pAccelerationY", "pAccelerationZ", "pRotationX", "pRotationY", "pRotationZ", "rotationX", "rotationY", "rotationZ", "deviceOrientation", "turnAxis", "isKeyPressed", "keyIsPressed", "keyCode", "key", "_lastKeyCodeTyped", "mouseX", "mouseY", "winMouseX", "winMouseY", "_hasMouseInteracted", "pmouseX", "pmouseY", "pwinMouseX", "pwinMouseY", "mouseButton", "isMousePressed", "mouseIsPressed", "touches", "touchX", "touchY", "winTouchX", "winTouchY", "_hasTouchInteracted", "ptouchX", "ptouchY", "pwinTouchX", "pwinTouchY", "touchIsDown", "_textFont", "tex", "isTexture"]) {
     (function setRegistry(entry, tpoint) {
         Object.defineProperty(window, entry, {
