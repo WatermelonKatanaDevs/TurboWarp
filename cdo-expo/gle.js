@@ -297,17 +297,15 @@ window.preload = function () {
           let __script = document.createElement("script");
           __script.text = ${JSON.stringify("p5Inst._startTime = Date.now();\np5Inst.frameCount = 0;\n" + json.source)};
           document.body.appendChild(__script);
-          // try { window.draw = draw; } catch (e) {}
-          // switch (stage) {
-          //   case 'preload':
-          //     if (preload !== window.preload) { preload(); }
-          //     break;
-          //   case 'setup':
-          //     if (setup !== window.setup) { 
-          //       setup();
-          //     }
-          //     break;
-          //   }
+          try { window.draw = draw; } catch (e) {}
+          switch (stage) {
+            case 'preload':
+              if (preload !== window.preload) { preload(); }
+              break;
+            case 'setup':
+              // if (setup !== window.setup) { setup(); }
+              break;
+            }
       })
       .catch(err => {
           throw new Error(err);
