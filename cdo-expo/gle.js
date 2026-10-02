@@ -16,7 +16,273 @@ function getCode(json, animations) {
     let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`
     animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`
   })
-  return `turbowarphost.then(d => {
+  return `var p5Inst = new p5(null, 'sketch');
+
+window.preload = function () {
+  initMobileControls(p5Inst);
+
+  p5Inst._predefinedSpriteAnimations = {};
+  p5Inst._pauseSpriteAnimationsByDefault = false;
+  var animationListJSON = ${JSON.stringify(animationList)}
+  var orderedKeys = animationListJSON.orderedKeys;
+  orderedKeys.forEach(function (key) {
+    var props = animationListJSON.propsByKey[key];
+    var frameCount = props.frameCount;
+    var image = loadImage(props.rootRelativePath, function () {
+      var spriteSheet = loadSpriteSheet(
+          image,
+          props.frameSize.x,
+          props.frameSize.y,
+          frameCount
+      );
+      p5Inst._predefinedSpriteAnimations[props.name] = loadAnimation(spriteSheet);
+      p5Inst._predefinedSpriteAnimations[props.name].looping = props.looping;
+      p5Inst._predefinedSpriteAnimations[props.name].frameDelay = props.frameDelay;
+    });
+  });
+
+  function wrappedExportedCode(stage) {
+    if (stage === 'preload') {
+      if (setup !== window.setup) {
+        window.setup = setup;
+      } else {
+        return;
+      }
+    }
+  for (let entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_targetFrameRate", "windowWidth", "windowHeight", "_curElement", "canvas", "width", "height", "_textLeading", "_textSize", "_textStyle", "_textAscent", "_textDescent", "imageData", "pixels", "pAccelerationX", "pAccelerationY", "pAccelerationZ", "pRotationX", "pRotationY", "pRotationZ", "rotationX", "rotationY", "rotationZ", "deviceOrientation", "turnAxis", "isKeyPressed", "keyIsPressed", "keyCode", "key", "_lastKeyCodeTyped", "mouseX", "mouseY", "winMouseX", "winMouseY", "_hasMouseInteracted", "pmouseX", "pmouseY", "pwinMouseX", "pwinMouseY", "mouseButton", "isMousePressed", "mouseIsPressed", "touches", "touchX", "touchY", "winTouchX", "winTouchY", "_hasTouchInteracted", "ptouchX", "ptouchY", "pwinTouchX", "pwinTouchY", "touchIsDown", "_textFont", "tex", "isTexture"]) {
+    (function setRegistry(entry, tpoint) {
+        Object.defineProperty(window, entry, {
+            set: function (e) {
+                if(p5Inst[entry + "_modify"] !== "_EXCEPTION_: _OVERWRITTEN_") {
+                  setTimeout(() => {
+                      if (p5Inst[entry] !== window[entry]) {
+                          p5Inst[entry + "_modify"] = "_EXCEPTION_: _OVERWRITTEN_";
+                      }
+                  }, 1);
+                }
+                return tpoint = e;
+            },
+            get: function () {
+                return tpoint;
+            },
+            enumerable: true,
+            configurable: true
+        })
+    })(entry, p5Inst[entry])
+  }
+  Object.defineProperties(Object.prototype, {
+    apply: {
+      value: function (fn, args) {
+        if (typeof this === "object" && "length" in this) {
+          return Function.prototype.apply.call(this, fn, args);
+        }
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    concat: {
+      value: function () {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.concat.apply(this, arguments);
+        }
+        return [];
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    every: {
+      value: function (cb, _this) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.every.call(this, cb, _this);
+        }
+        return false;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    indexOf: {
+      value: function (search, fromIndex) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.indexOf.call(this, search, fromIndex);
+        }
+        return -1;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    filter: {
+      value: function (cb, _this) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.filter.call(this, cb, _this);
+        }
+        return [];
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    forEach: {
+      value: function (cb, _this) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.forEach.call(this, cb, _this);
+        }
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    join: {
+      value: function (separator) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.join.call(this, separator);
+        }
+        return "";
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    lastIndexOf: {
+      value: function (search, fromIndex) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.lastIndexOf.call(this, search, fromIndex);
+        }
+        return -1;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    map: {
+      value: function (cb, _this) {
+        if (typeof this === "object" && "length" in this) {
+          const mapped = [];
+          for (let i in this) {
+            mapped.push(cb.call(_this, this[i], Number(i)));
+          }
+          return mapped;
+        }
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    push: {
+      value: function () {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.push.apply(this, arguments)
+        }
+        return 0;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    pop: {
+      value: function () {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.pop.apply(this)
+        }
+        return undefined;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    reduce: {
+      value: function (cb, startValue) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.reduce.call(this, cb, startValue);
+        }
+        throw new TypeError("Cannot call reduce on a non-array object");
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    some: {
+      value: function (cb, _this) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.some.call(this, cb, _this);
+        }
+        return false;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    shift: {
+      value: function () {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.shift.call(this);
+        }
+        return undefined;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    splice: {
+      value: function (start, amount, ...items) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.splice.call(this, start, amount, ...items);
+        }
+        return [];
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    unshift: {
+      value: function () {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.unshift.apply(this, arguments);
+        }
+        return 0;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    reverse: {
+      value: function () {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.reverse.call(this);
+        }
+        return this;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    slice: {
+      value: function () {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.slice.apply(this, arguments);
+        }
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    },
+    sort: {
+      value: function (cb) {
+        if (typeof this === "object" && "length" in this) {
+          return Array.prototype.sort.call(this, cb);
+        }
+        return this;
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true
+    }
+  })
+  ;(function() {
+      return turbowarphost.then(d => {
         if(d.userid) {
           return d.userid;
         } else {
@@ -24,300 +290,38 @@ function getCode(json, animations) {
           return getUserId();
         }
       }).then(id => {
-        window.p5Inst = new p5(null, 'sketch');
-
-        window.preload = function () {
-            initMobileControls(p5Inst);
-
-            p5Inst._predefinedSpriteAnimations = {};
-            p5Inst._pauseSpriteAnimationsByDefault = false;
-            var animationListJSON = ${JSON.stringify(animationList)}
-            var orderedKeys = animationListJSON.orderedKeys;
-            orderedKeys.forEach(function (key) {
-              var props = animationListJSON.propsByKey[key];
-              var frameCount = props.frameCount;
-              var image = loadImage(props.rootRelativePath, function () {
-                var spriteSheet = loadSpriteSheet(
-                    image,
-                    props.frameSize.x,
-                    props.frameSize.y,
-                    frameCount
-                );
-                p5Inst._predefinedSpriteAnimations[props.name] = loadAnimation(spriteSheet);
-                p5Inst._predefinedSpriteAnimations[props.name].looping = props.looping;
-                p5Inst._predefinedSpriteAnimations[props.name].frameDelay = props.frameDelay;
-              });
-            });
-
-          function wrappedExportedCode(stage) {
-            if (stage === 'preload') {
-              if (setup !== window.setup) {
-                window.setup = setup;
-              } else {
-                return;
-            }
-          }
-            for (let entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_targetFrameRate", "windowWidth", "windowHeight", "_curElement", "canvas", "width", "height", "_textLeading", "_textSize", "_textStyle", "_textAscent", "_textDescent", "imageData", "pixels", "pAccelerationX", "pAccelerationY", "pAccelerationZ", "pRotationX", "pRotationY", "pRotationZ", "rotationX", "rotationY", "rotationZ", "deviceOrientation", "turnAxis", "isKeyPressed", "keyIsPressed", "keyCode", "key", "_lastKeyCodeTyped", "mouseX", "mouseY", "winMouseX", "winMouseY", "_hasMouseInteracted", "pmouseX", "pmouseY", "pwinMouseX", "pwinMouseY", "mouseButton", "isMousePressed", "mouseIsPressed", "touches", "touchX", "touchY", "winTouchX", "winTouchY", "_hasTouchInteracted", "ptouchX", "ptouchY", "pwinTouchX", "pwinTouchY", "touchIsDown", "_textFont", "tex", "isTexture"]) {
-              (function setRegistry(entry, tpoint) {
-                  Object.defineProperty(window, entry, {
-                      set: function (e) {
-                          if(p5Inst[entry + "_modify"] !== "_EXCEPTION_: _OVERWRITTEN_") {
-                            setTimeout(() => {
-                                if (p5Inst[entry] !== window[entry]) {
-                                    p5Inst[entry + "_modify"] = "_EXCEPTION_: _OVERWRITTEN_";
-                                }
-                            }, 1);
-                          }
-                          return tpoint = e;
-                      },
-                      get: function () {
-                          return tpoint;
-                      },
-                      enumerable: true,
-                      configurable: true
-                  })
-              })(entry, p5Inst[entry])
-            }
-            Object.defineProperties(Object.prototype, {
-              apply: {
-                value: function (fn, args) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Function.prototype.apply.call(this, fn, args);
-                  }
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              concat: {
-                value: function () {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.concat.apply(this, arguments);
-                  }
-                  return [];
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              every: {
-                value: function (cb, _this) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.every.call(this, cb, _this);
-                  }
-                  return false;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              indexOf: {
-                value: function (search, fromIndex) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.indexOf.call(this, search, fromIndex);
-                  }
-                  return -1;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              filter: {
-                value: function (cb, _this) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.filter.call(this, cb, _this);
-                  }
-                  return [];
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              forEach: {
-                value: function (cb, _this) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.forEach.call(this, cb, _this);
-                  }
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              join: {
-                value: function (separator) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.join.call(this, separator);
-                  }
-                  return "";
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              lastIndexOf: {
-                value: function (search, fromIndex) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.lastIndexOf.call(this, search, fromIndex);
-                  }
-                  return -1;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              map: {
-                value: function (cb, _this) {
-                  if (typeof this === "object" && "length" in this) {
-                    const mapped = [];
-                    for (let i in this) {
-                      mapped.push(cb.call(_this, this[i], Number(i)));
-                    }
-                    return mapped;
-                  }
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              push: {
-                value: function () {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.push.apply(this, arguments)
-                  }
-                  return 0;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              pop: {
-                value: function () {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.pop.apply(this)
-                  }
-                  return undefined;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              reduce: {
-                value: function (cb, startValue) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.reduce.call(this, cb, startValue);
-                  }
-                  throw new TypeError("Cannot call reduce on a non-array object");
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              some: {
-                value: function (cb, _this) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.some.call(this, cb, _this);
-                  }
-                  return false;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              shift: {
-                value: function () {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.shift.call(this);
-                  }
-                  return undefined;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              splice: {
-                value: function (start, amount, ...items) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.splice.call(this, start, amount, ...items);
-                  }
-                  return [];
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              unshift: {
-                value: function () {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.unshift.apply(this, arguments);
-                  }
-                  return 0;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              reverse: {
-                value: function () {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.reverse.call(this);
-                  }
-                  return this;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              slice: {
-                value: function () {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.slice.apply(this, arguments);
-                  }
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              },
-              sort: {
-                value: function (cb) {
-                  if (typeof this === "object" && "length" in this) {
-                    return Array.prototype.sort.call(this, cb);
-                  }
-                  return this;
-                },
-                enumerable: false,
-                configurable: true,
-                writable: true
-              }
-            })
-            }
-            window.wrappedExportedCode = wrappedExportedCode;
-            wrappedExportedCode('preload');
-          };
-
-          window.setup = function () {
-            window.wrappedExportedCode('setup');
-          };
           localStorage.userId = id;
           // Better than eval but still unsafe;
           // let __oldPreload = window.preload;
           // let __oldSetup = window.setup;
           let __script = document.createElement("script");
           __script.text = ${JSON.stringify("p5Inst._startTime = Date.now();\np5Inst.frameCount = 0;\n" + json.source)};
-          document.body.appendChild(__script);
+          document.head.appendChild(__script);
           try { window.draw = draw; } catch (e) {}
-            switch (stage) {
-              case 'preload':
-                if (preload !== window.preload) { preload(); }
-                break;
-              case 'setup':
-                if (setup !== window.setup) { setup(); }
-                break;
+          switch (stage) {
+            case 'preload':
+              if (prealod !== window.preload) { preload(); }
+              break;
+            case 'setup':
+              if (setup !== window.setup) { 
+                setup();
+              }
+              break;
             }
-          })
+      })
       .catch(err => {
           throw new Error(err);
       })
-`
+  })();
+  }
+  window.wrappedExportedCode = wrappedExportedCode;
+  wrappedExportedCode('preload');
+};
+
+window.setup = function () {
+  window.wrappedExportedCode('setup');
+};
+  `
 }
 
 //* Old Code
