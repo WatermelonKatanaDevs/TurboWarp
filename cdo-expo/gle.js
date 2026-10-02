@@ -303,7 +303,8 @@ window.preload = function () {
               if (preload !== window.preload) { preload(); }
               break;
             case 'setup':
-              if (setup !== window.setup) { 
+              if (setup !== window.setup) {
+                if (preload !== window.preload) { preload(); } 
                 setup();
               }
               break;
