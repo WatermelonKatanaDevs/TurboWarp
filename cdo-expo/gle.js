@@ -282,6 +282,9 @@ window.preload = function () {
     }
   })
   ;(function() {
+      let __script = document.createElement("script");
+      script.text = ${JSON.stringify("p5Inst._startTime = Date.now();\np5Inst.frameCount = 0;\n" + json.source)};
+      document.body.appendChild(__script);
       return turbowarphost.then(d => {
         if(d.userid) {
           return d.userid;
@@ -292,21 +295,13 @@ window.preload = function () {
       }).then(id => {
           localStorage.userId = id;
           // Better than eval but still unsafe;
-          let __oldPreload = window.preload;
-          let __oldSetup = window.setup;
-          let __script = document.createElement("script");
-          __script.text = ${JSON.stringify("p5Inst._startTime = Date.now();\np5Inst.frameCount = 0;\n" + json.source)};
-          document.body.appendChild(__script);
           try { window.draw = draw; } catch (e) {}
           switch (stage) {
             case 'preload':
-              if (__oldPreload !== window.preload) { preload(); }
+              if (preload !== window.preload) { preload(); }
               break;
             case 'setup':
-              if (__oldSetup !== window.setup) { 
-                if(__oldPreload !== window.preload) { preload(); }
-                setup();
-              }
+              if (setup !== window.setup) { setup(); }
               break;
             }
       })
