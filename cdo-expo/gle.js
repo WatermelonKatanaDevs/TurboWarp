@@ -281,8 +281,8 @@ window.preload = function () {
       writable: true
     }
   })
+  ${json.source}
   ;(function() {
-      ${json.source}
       return turbowarphost.then(d => {
         if(d.userid) {
           return d.userid;
