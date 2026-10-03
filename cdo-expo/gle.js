@@ -17,7 +17,7 @@ function getCode(json, animations) {
     animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`
   })
   return `var p5Inst = new p5(null, 'sketch');
-
+p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
 window.preload = function () {
   initMobileControls(p5Inst);
 
@@ -282,9 +282,7 @@ window.preload = function () {
     }
   })
   ;(function() {
-      let __script = document.createElement("script");
-      script.text = ${JSON.stringify("p5Inst._startTime = Date.now();\np5Inst.frameCount = 0;\n" + json.source)};
-      document.body.appendChild(__script);
+      ${json.source}
       return turbowarphost.then(d => {
         if(d.userid) {
           return d.userid;
