@@ -1,20 +1,19 @@
-// const fs = require("fs");
-const request = require('./requests')
-const { escapehtml, inline, wraplibraries } = require('./format')
-const startPath = 'https://studio.code.org'
+const request = require('./requests');
+const { escapehtml, inline, wraplibraries } = require('./format');
+const startPath = 'https://studio.code.org';
 
 async function exportProject(id, channel) {
-  const source = await request.send(`${startPath}/v3/sources/${id}/main.json`, 'json')
-  return getHTML(id, channel.name, getCode(source, `${startPath}/v3/animations/${id}/`))
+  const source = await request.send(`${startPath}/v3/sources/${id}/main.json`, 'json');
+  return getHTML(id, channel.name, getCode(source, `${startPath}/v3/animations/${id}/`));
 }
 
 function getCode(json, animations) {
-  let animationList = json.animations || { orderedKeys: [], propsByKey: {} }
-  json.source = wraplibraries(json)
+  let animationList = json.animations || { orderedKeys: [], propsByKey: {} };
+  json.source = wraplibraries(json);
   animationList.orderedKeys.forEach((key) => {
-    let animation = animationList.propsByKey[key]
-    let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`
-    animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`
+    let animation = animationList.propsByKey[key];
+    let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`;
+    animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`;
   })
   return `var p5Inst = new p5(null, 'sketch');
 p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
@@ -108,8 +107,6 @@ window.setup = function () {
   `
 }
 
-//* Old Code
-
 function getHTML(id, name, code) {
   const dependency = '/turbowarp/gamelab'
   return `<html>
@@ -169,7 +166,7 @@ function getHTML(id, name, code) {
   <div id="studio-dpad-container" style="display:none; position:absolute; width:400px; bottom:5px; height:157px; overflow-y:hidden; z-index: -1;">
   </div>
 </body>
-</html>`
+</html>`;
 }
 
 module.exports = {
