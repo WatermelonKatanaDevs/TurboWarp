@@ -1,5 +1,11 @@
 (function () {
   const inframe = window.parent !== window;
+  const serverUserId = typeof window.__turbowarpServerUserId === "string"
+    ? window.__turbowarpServerUserId
+    : null;
+  try {
+    delete window.__turbowarpServerUserId;
+  } catch (err) {}
 
   function createstorage(persist) {
     const items = new Map();
@@ -70,9 +76,9 @@
 
   window.turbowarphost = new Promise((resolve) => {
     if (!inframe) {
-      return resolve({});
+      return resolve(serverUserId ? { userid: serverUserId } : {});
     }
-    const timer = setTimeout(() => resolve({}), 1e4);
+    const timer = setTimeout(() => resolve(serverUserId ? { userid: serverUserId } : {}), 1e4);
     window.addEventListener("message", function listen(event) {
       const data = event.data;
       if (event.source !== parent || !data || data.turbowarp !== "init") {
