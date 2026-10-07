@@ -76,7 +76,7 @@ window.preload = function () {
       let __oldPreload = window.preload;
       let __oldSetup = window.setup;
       let __script = document.createElement("script");
-      __script.text = "p5Inst._startTime = Date.now();\np5Inst.frameCount = 0;\n${json.source}";
+      __script.text = ${JSON.stringify("p5Inst._startTime = Date.now();\np5Inst.frameCount = 0;\n" + json.source)};
       document.body.appendChild(__script);
       return turbowarphost.then(d => {
         if(d.userid) {
