@@ -84,7 +84,7 @@ function getHTML(html, id, name, code) {
                 }
               });
               observer.observe(element, {attributes: true});
-              document.head.appendChild(script);
+              document.body.appendChild(script);
           })
           .catch(err => {
               throw new Error(err);
