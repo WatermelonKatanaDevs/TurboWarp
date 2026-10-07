@@ -94,6 +94,13 @@
           local.items.set(key, String(data.storage[key]));
         }
       }
+      // The host's authenticated account ID must win over a previously-created
+      // localUser ID. Also remove a stale account ID after logout.
+      if (typeof data.userid === "string" && data.userid) {
+        local.items.set("userId", data.userid);
+      } else if (local.items.get("userId")?.startsWith("accountUser:")) {
+        local.items.delete("userId");
+      }
       resolve(data);
     });
     parent.postMessage({ turbowarp: "ready", title: document.title }, "*");
