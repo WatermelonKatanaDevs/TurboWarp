@@ -58,7 +58,17 @@ function playerpage(id) {
               .then((r) => (r.ok ? r.json() : {}))
               .catch(() => ({}))
               .then((d) => {
-                const userid = d.user ? "accountUser:" + d.user.id : null;
+                const userid = d.user && (d.user.id || d.user._id)
+                  ? "accountUser:" + (d.user.id || d.user._id)
+                  : null;
+                const storage = load();
+                // Make the authenticated account ID authoritative before the exported
+                // project can call getUserId() or inspect localStorage.userId.
+                if (userid) {
+                  storage.userId = userid;
+                } else if (typeof storage.userId === "string" && storage.userId.startsWith("accountUser:")) {
+                  delete storage.userId;
+                }
                 // const abs = (u) => (typeof u === "string" && u.charAt(0) === "/" ? location.origin + u : u);
                 // let wkuser;
                 // if (!d.user) {
@@ -68,8 +78,8 @@ function playerpage(id) {
                 // } else {
                 //   wkuser = "disallowed";
                 // }
-                // frame.contentWindow.postMessage({ turbowarp: "init", userid, wkuser, storage: load() }, "*");
-                frame.contentWindow.postMessage({ turbowarp: "init", userid, storage: load() }, "*");
+                // frame.contentWindow.postMessage({ turbowarp: "init", userid, wkuser, storage }, "*");
+                frame.contentWindow.postMessage({ turbowarp: "init", userid, storage }, "*");
               });
           } else if (data.turbowarp === "storage" && ready) {
             write(data);
