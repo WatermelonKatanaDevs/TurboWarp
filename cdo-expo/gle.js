@@ -1,12 +1,22 @@
-return `var p5Inst = new p5(null, 'sketch');
-  let __userCodeLoaded = false;
-  let __userSetup = null;
-  let __userPreload = null;
-  let __setupReadyResolve;
-  let __setupCalled = false;
-  const __setupReady = new Promise(resolve => { __setupReadyResolve = resolve; });
+const request = require('./requests');
+const { escapehtml, inline, wraplibraries } = require('./format');
+const startPath = 'https://studio.code.org';
 
-  window.preload = function __gamelabPreload() {
+async function exportProject(id, channel) {
+  const source = await request.send(`${startPath}/v3/sources/${id}/main.json`, 'json');
+  return getHTML(id, channel.name, getCode(source, `${startPath}/v3/animations/${id}/`));
+}
+
+function getCode(json, animations) {
+  let animationList = json.animations || { orderedKeys: [], propsByKey: {} };
+  json.source = wraplibraries(json);
+  animationList.orderedKeys.forEach((key) => {
+    let animation = animationList.propsByKey[key];
+    let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`;
+    animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`;
+  })
+  return `var p5Inst = new p5(null, 'sketch');
+  window.preload = function () {
   p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
   initMobileControls(p5Inst);
 
@@ -30,44 +40,41 @@ return `var p5Inst = new p5(null, 'sketch');
     });
   });
 
-  function loadUserCode() {
-    if (__userCodeLoaded) return;
-    __userCodeLoaded = true;
-
-    let script = document.createElement("script");
-    script.text = ${inline(json.source)};
-    document.body.appendChild(script);
-
-    __userSetup = typeof window.setup === "function" && window.setup !== window.__gamelabSetupBridge
-      ? window.setup
-      : null;
-    __userPreload = typeof window.preload === "function" && window.preload !== __gamelabPreload
-      ? window.preload
-      : null;
-
-    if (__userSetup) {
-      window.setup = window.__gamelabSetupBridge;
-    }
-    __setupReadyResolve(__userSetup);
-  }
-
   function wrappedExportedCode(stage) {
-    loadUserCode();
-
     if (stage === 'preload') {
-      if (__userPreload) {
-        __userPreload();
+      if (setup !== window.setup) {
+        window.setup = setup;
+      } else {
+        return;
       }
-      return;
     }
-
-    if (stage === 'setup') {
-      return window.__gamelabSetupBridge();
-    }
+  for (let entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_targetFrameRate", "windowWidth", "windowHeight", "_curElement", "canvas", "width", "height", "_textLeading", "_textSize", "_textStyle", "_textAscent", "_textDescent", "imageData", "pixels", "pAccelerationX", "pAccelerationY", "pAccelerationZ", "pRotationX", "pRotationY", "pRotationZ", "rotationX", "rotationY", "rotationZ", "deviceOrientation", "turnAxis", "isKeyPressed", "keyIsPressed", "keyCode", "key", "_lastKeyCodeTyped", "mouseX", "mouseY", "winMouseX", "winMouseY", "_hasMouseInteracted", "pmouseX", "pmouseY", "pwinMouseX", "pwinMouseY", "mouseButton", "isMousePressed", "mouseIsPressed", "touches", "touchX", "touchY", "winTouchX", "winTouchY", "_hasTouchInteracted", "ptouchX", "ptouchY", "pwinTouchX", "pwinTouchY", "touchIsDown", "_textFont", "tex", "isTexture"]) {
+    (function setRegistry(entry, tpoint) {
+        Object.defineProperty(window, entry, {
+            set: function (e) {
+                if(p5Inst[entry + "_modify"] !== "_EXCEPTION_: _OVERWRITTEN_") {
+                  setTimeout(() => {
+                      if (p5Inst[entry] !== window[entry]) {
+                          p5Inst[entry + "_modify"] = "_EXCEPTION_: _OVERWRITTEN_";
+                      }
+                  }, 1);
+                }
+                return tpoint = e;
+            },
+            get: function () {
+                return tpoint;
+            },
+            enumerable: true,
+            configurable: true
+        })
+    })(entry, p5Inst[entry])
   }
-
+  Object.defineProperties(Object.prototype,{apply:{value:function(fn,args){if(typeof this==="object"&&"length"in this){return Function.prototype.apply.call(this,fn,args)}},enumerable:false,configurable:true,writable:true},concat:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.concat.apply(this,arguments)}return[]},enumerable:false,configurable:true,writable:true},every:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.every.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},indexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.indexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},filter:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.filter.call(this,cb,_this)}return[]},enumerable:false,configurable:true,writable:true},forEach:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.forEach.call(this,cb,_this)}},enumerable:false,configurable:true,writable:true},join:{value:function(separator){if(typeof this==="object"&&"length"in this){return Array.prototype.join.call(this,separator)}return ""},enumerable:false,configurable:true,writable:true},lastIndexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.lastIndexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},map:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){const mapped=[];for(let i in this){mapped.push(cb.call(_this,this[i],Number(i)))}return mapped}},enumerable:false,configurable:true,writable:true},push:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.push.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},pop:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.pop.apply(this)}return undefined},enumerable:false,configurable:true,writable:true},reduce:{value:function(cb,startValue){if(typeof this==="object"&&"length"in this){return Array.prototype.reduce.call(this,cb,startValue)}throw new TypeError("Cannot call reduce on a non-array object")},enumerable:false,configurable:true,writable:true},some:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.some.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},shift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.shift.call(this)}return undefined},enumerable:false,configurable:true,writable:true},splice:{value:function(start,amount,...items){if(typeof this==="object"&&"length"in this){return Array.prototype.splice.call(this,start,amount,...items)}return[]},enumerable:false,configurable:true,writable:true},unshift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.unshift.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},reverse:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.reverse.call(this)}return this},enumerable:false,configurable:true,writable:true},slice:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.slice.apply(this,arguments)}},enumerable:false,configurable:true,writable:true},sort:{value:function(cb){if(typeof this==="object"&&"length"in this){return Array.prototype.sort.call(this,cb)}return this},enumerable:false,configurable:true,writable:true}});
+  let script = document.createElement("script");
+  script.text = ${inline(json.source)};
+  document.body.appendChild(script);
+  }
   window.wrappedExportedCode = wrappedExportedCode;
-
   turbowarphost.then(d => {
     if(d.userid) {
       return d.userid;
@@ -77,25 +84,25 @@ return `var p5Inst = new p5(null, 'sketch');
     }
   }).then(id => {
       localStorage.userId = id;
-      window.wrappedExportedCode('preload');
+      wrappedExportedCode('preload');
       try { window.draw = draw; } catch (e) {}
-  }).catch(err => {
+      switch (stage) {
+        case 'preload':
+          if (preload !== window.preload) { preload(); }
+          break;
+        case 'setup':
+          if (setup !== window.setup) { setup(); }
+          break;
+        }
+  })
+  .catch(err => {
       throw new Error(err);
-  });
-  }
+  })
+};
 
-  window.__gamelabSetupBridge = function () {
-    if (__setupCalled) return;
-    __setupCalled = true;
-
-    if (__userSetup) {
-      return __userSetup();
-    }
-
-    return __setupReady.then(setup => setup ? setup() : undefined);
-  };
-
-  window.setup = window.__gamelabSetupBridge;
+window.setup = function () {
+  window.wrappedExportedCode('setup');
+};
   `
 }
 
