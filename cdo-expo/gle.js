@@ -113,15 +113,17 @@ function getHTML(id, name, code) {
       <script src="${dependency}/gamelab-api.js"></script>
       <script>
         turbowarphost.then(d => {
-          if(d.userid) {
-            return d.userid;
-          } else {
-            if(localStorage.userId?.startsWith("accountUser:")) {delete localStorage.userId}
-            return getUserId();
-          }
+        if(d.userid) {
+          return d.userid;
+        } else {
+          if(localStorage.userId?.startsWith("accountUser:")) {delete localStorage.userId}
+          return getUserId();
+        }
         }).then(id => {
             localStorage.userId = id;
-            ${code}
+            let script = document.createElement("script");
+            script.text = ${inline(code)}
+            document.body.appendChild(script);
         })
         .catch(err => {
             throw new Error(err);
