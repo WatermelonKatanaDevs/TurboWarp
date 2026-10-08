@@ -86,7 +86,6 @@ function getCode(json, animations) {
           if (oldSetup !== window.setup) { setup(); }
           break;
     }
-   }
   }
   script.onload = function() {
     document.body.appendChild(inject);
