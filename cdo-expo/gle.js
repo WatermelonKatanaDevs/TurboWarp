@@ -138,7 +138,7 @@ function getHTML(id, name, code) {
             localStorage.userId = id;
             let script = document.createElement("script");
             script.text = ${inline(code)};
-            document.body.appendChild(code);
+            (document.head || document.documentElement).appendChild(script);
         })
         .catch(err => {
             throw new Error(err);
