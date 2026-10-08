@@ -86,10 +86,10 @@ function getCode(json, animations) {
           try { window.draw = draw; } catch (e) {}
           switch (stage) {
             case 'preload':
-              if (preload !== window.preload) { preload(); }
+              preload();
               break;
             case 'setup':
-              if (setup !== window.setup) { setup(); }
+              setup();
               break;
             }
       })
