@@ -91,18 +91,18 @@ function getCode(json, animations) {
         if (setup !== window.setup) { setup(); }
         break;
       }
-})
-.catch(err => {
-    throw new Error(err);
-})
-  }
-  window.wrappedExportedCode = wrappedExportedCode;
+      window.wrappedExportedCode = wrappedExportedCode;
   wrappedExportedCode('preload');
-};
+}
+}
 
 window.setup = function () {
   window.wrappedExportedCode('setup');
 };
+})
+.catch(err => {
+    throw new Error(err);
+})
   `
 }
 
