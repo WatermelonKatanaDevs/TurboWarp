@@ -97,7 +97,7 @@ function getCode(json, animations) {
     //     if (setup !== window.setup) { setup(); }
     //     break;
     //   }
-    // }
+    }
     window.wrappedExportedCode = wrappedExportedCode;
     wrappedExportedCode('preload');
 }
