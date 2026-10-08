@@ -86,24 +86,10 @@ function getCode(json, animations) {
           if (oldSetup !== window.setup) { setup(); }
           break;
     }
-   }
   }
-  script.onload = function() {
+  // script.onload = function() {
     document.body.appendChild(inject);
-  }
-  document.body.appendChild(script);
-  let script = document.createElement("script");
-  script.text = ${inline(json.source)};
-  document.body.appendChild(script);
-  try { window.draw = draw; } catch (e) {}
-    switch (stage) {
-      case 'preload':
-        if (preload !== window.preload) { preload(); }
-        break;
-      case 'setup':
-        if (setup !== window.setup) { setup(); }
-        break;
-      }
+  // }
 }
   window.wrappedExportedCode = wrappedExportedCode;
   wrappedExportedCode('preload');
