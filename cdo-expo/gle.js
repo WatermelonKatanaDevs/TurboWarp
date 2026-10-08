@@ -40,6 +40,33 @@ function getCode(json, animations) {
     });
   });
 
+  let __gamelabUserCodeLoaded = false;
+  let __gamelabUserPreload = null;
+
+  window.preload = function __gamelabPreload() {
+  p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
+  initMobileControls(p5Inst);
+
+  p5Inst._predefinedSpriteAnimations = {};
+  p5Inst._pauseSpriteAnimationsByDefault = false;
+  var animationListJSON = ${JSON.stringify(animationList)}
+  var orderedKeys = animationListJSON.orderedKeys;
+  orderedKeys.forEach(function (key) {
+    var props = animationListJSON.propsByKey[key];
+    var frameCount = props.frameCount;
+    var image = loadImage(props.rootRelativePath, function () {
+      var spriteSheet = loadSpriteSheet(
+          image,
+          props.frameSize.x,
+          props.frameSize.y,
+          frameCount
+      );
+      p5Inst._predefinedSpriteAnimations[props.name] = loadAnimation(spriteSheet);
+      p5Inst._predefinedSpriteAnimations[props.name].looping = props.looping;
+      p5Inst._predefinedSpriteAnimations[props.name].frameDelay = props.frameDelay;
+    });
+  });
+
   function wrappedExportedCode(stage) {
     if (stage === 'preload') {
       if (setup !== window.setup) {
@@ -48,6 +75,7 @@ function getCode(json, animations) {
         return;
       }
     }
+
   for (let entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_targetFrameRate", "windowWidth", "windowHeight", "_curElement", "canvas", "width", "height", "_textLeading", "_textSize", "_textStyle", "_textAscent", "_textDescent", "imageData", "pixels", "pAccelerationX", "pAccelerationY", "pAccelerationZ", "pRotationX", "pRotationY", "pRotationZ", "rotationX", "rotationY", "rotationZ", "deviceOrientation", "turnAxis", "isKeyPressed", "keyIsPressed", "keyCode", "key", "_lastKeyCodeTyped", "mouseX", "mouseY", "winMouseX", "winMouseY", "_hasMouseInteracted", "pmouseX", "pmouseY", "pwinMouseX", "pwinMouseY", "mouseButton", "isMousePressed", "mouseIsPressed", "touches", "touchX", "touchY", "winTouchX", "winTouchY", "_hasTouchInteracted", "ptouchX", "ptouchY", "pwinTouchX", "pwinTouchY", "touchIsDown", "_textFont", "tex", "isTexture"]) {
     (function setRegistry(entry, tpoint) {
         Object.defineProperty(window, entry, {
@@ -70,30 +98,41 @@ function getCode(json, animations) {
     })(entry, p5Inst[entry])
   }
   Object.defineProperties(Object.prototype,{apply:{value:function(fn,args){if(typeof this==="object"&&"length"in this){return Function.prototype.apply.call(this,fn,args)}},enumerable:false,configurable:true,writable:true},concat:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.concat.apply(this,arguments)}return[]},enumerable:false,configurable:true,writable:true},every:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.every.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},indexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.indexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},filter:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.filter.call(this,cb,_this)}return[]},enumerable:false,configurable:true,writable:true},forEach:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.forEach.call(this,cb,_this)}},enumerable:false,configurable:true,writable:true},join:{value:function(separator){if(typeof this==="object"&&"length"in this){return Array.prototype.join.call(this,separator)}return ""},enumerable:false,configurable:true,writable:true},lastIndexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.lastIndexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},map:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){const mapped=[];for(let i in this){mapped.push(cb.call(_this,this[i],Number(i)))}return mapped}},enumerable:false,configurable:true,writable:true},push:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.push.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},pop:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.pop.apply(this)}return undefined},enumerable:false,configurable:true,writable:true},reduce:{value:function(cb,startValue){if(typeof this==="object"&&"length"in this){return Array.prototype.reduce.call(this,cb,startValue)}throw new TypeError("Cannot call reduce on a non-array object")},enumerable:false,configurable:true,writable:true},some:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.some.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},shift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.shift.call(this)}return undefined},enumerable:false,configurable:true,writable:true},splice:{value:function(start,amount,...items){if(typeof this==="object"&&"length"in this){return Array.prototype.splice.call(this,start,amount,...items)}return[]},enumerable:false,configurable:true,writable:true},unshift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.unshift.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},reverse:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.reverse.call(this)}return this},enumerable:false,configurable:true,writable:true},slice:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.slice.apply(this,arguments)}},enumerable:false,configurable:true,writable:true},sort:{value:function(cb){if(typeof this==="object"&&"length"in this){return Array.prototype.sort.call(this,cb)}return this},enumerable:false,configurable:true,writable:true}});
-  let oldPreload = window.preload;
-  let oldSetup = window.setup;
-  let script = document.createElement("script");
-  script.text = ${inline(json.source)};
-  script.onload = function() {
-    try { window.draw = draw; } catch (e) {}
-    switch (stage) {
-      case 'preload':
-        if (preload !== oldPreload) { preload(); }
-        break;
-      case 'setup':
-        if (setup !== oldSetup) { setup(); }
-        break;
-    }
-  }
-  document.body.appendChild(script);
-  }
-  window.wrappedExportedCode = wrappedExportedCode;
-  wrappedExportedCode('preload');
-};
 
-window.setup = function () {
-  window.wrappedExportedCode('setup');
-};
+    if (!__gamelabUserCodeLoaded) {
+      __gamelabUserCodeLoaded = true;
+      const userScript = document.createElement("script");
+      userScript.text = ${inline(json.source)};
+      (document.head || document.documentElement).appendChild(userScript);
+      __gamelabUserPreload =
+        typeof window.preload === "function" && window.preload !== __gamelabPreload
+          ? window.preload
+          : null;
+    }
+
+    if (__gamelabUserPreload) {
+      const userPreload = __gamelabUserPreload;
+      __gamelabUserPreload = null;
+      return userPreload();
+    }
+  };
+
+  window.__gamelabStart = function () {
+    return turbowarphost.then(d => {
+      if (d && d.userid) {
+        localStorage.userId = d.userid;
+      } else if (typeof localStorage.userId === "string" && localStorage.userId.startsWith("accountUser:")) {
+        delete localStorage.userId;
+      }
+      p5Inst = new p5(null, 'sketch');
+    });
+  };
+
+  window.__gamelabStart().catch(err => {
+    console.error(err);
+    throw err;
+  });
+
   `
 }
 
