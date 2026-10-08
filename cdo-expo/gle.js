@@ -17,6 +17,10 @@ function getCode(json, animations) {
   })
   return `var p5Inst = new p5(null, 'sketch');
   window.preload = function () {
+  let __generatedPreload = window.preload;
+  let __userScriptLoaded = false;
+  let __userSetup = null;
+  let __userPreload = null;
   p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
   initMobileControls(p5Inst);
 
@@ -81,28 +85,44 @@ function getCode(json, animations) {
     }
   }).then(id => {
       localStorage.userId = id;
-      wrappedExportedCode('preload');
-      let script = document.createElement("script");
-      script.text = ${inline(json.source)};
-      document.body.appendChild(script);
+
+      if (!__userScriptLoaded) {
+        __userScriptLoaded = true;
+        let script = document.createElement("script");
+        script.text = ${inline(json.source)};
+        document.body.appendChild(script);
+
+        __userSetup = typeof window.setup === "function"
+          ? window.setup
+          : null;
+        __userPreload = typeof window.preload === "function" &&
+          window.preload !== __generatedPreload
+          ? window.preload
+          : null;
+
+        window.setup = window.__gamelabSetupBridge;
+      }
+
       try { window.draw = draw; } catch (e) {}
-      switch (stage) {
-        case 'preload':
-          if (preload !== window.preload) { preload(); }
-          break;
-        case 'setup':
-          if (setup !== window.setup) { setup(); }
-          break;
-        }
+
+      if (stage === 'preload' && __userPreload) {
+        return __userPreload();
+      }
+
+      if (stage === 'setup' && __userSetup) {
+        return __userSetup();
+      }
   })
   .catch(err => {
       throw new Error(err);
   })
 };
 
-window.setup = function () {
-  window.wrappedExportedCode('setup');
+window.__gamelabSetupBridge = function () {
+  return window.wrappedExportedCode('setup');
 };
+
+window.setup = window.__gamelabSetupBridge;
   `
 }
 
