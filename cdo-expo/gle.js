@@ -47,8 +47,8 @@ return `var p5Inst = new p5(null, 'sketch');
 
     if (__userSetup) {
       window.setup = window.__gamelabSetupBridge;
-      __setupReadyResolve(__userSetup);
     }
+    __setupReadyResolve(__userSetup);
   }
 
   function wrappedExportedCode(stage) {
@@ -92,7 +92,7 @@ return `var p5Inst = new p5(null, 'sketch');
       return __userSetup();
     }
 
-    return __setupReady.then(setup => setup());
+    return __setupReady.then(setup => setup ? setup() : undefined);
   };
 
   window.setup = window.__gamelabSetupBridge;
