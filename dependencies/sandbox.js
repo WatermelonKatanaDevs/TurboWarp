@@ -78,14 +78,12 @@
     if (!inframe) {
       return resolve(serverUserId ? { userid: serverUserId } : {});
     }
-    const timer = setTimeout(() => resolve(serverUserId ? { userid: serverUserId } : {}), 1e4);
     window.addEventListener("message", function listen(event) {
       const data = event.data;
       if (event.source !== parent || !data || data.turbowarp !== "init") {
         return;
       }
       window.removeEventListener("message", listen);
-      clearTimeout(timer);
       // if (typeof data.wkuser !== "undefined") {
       //   wkuserdata = data.wkuser;
       // }
