@@ -1,22 +1,12 @@
-const request = require('./requests');
-const { escapehtml, inline, wraplibraries } = require('./format');
-const startPath = 'https://studio.code.org';
+return `var p5Inst = new p5(null, 'sketch');
+  let __userCodeLoaded = false;
+  let __userSetup = null;
+  let __userPreload = null;
+  let __setupReadyResolve;
+  let __setupCalled = false;
+  const __setupReady = new Promise(resolve => { __setupReadyResolve = resolve; });
 
-async function exportProject(id, channel) {
-  const source = await request.send(`${startPath}/v3/sources/${id}/main.json`, 'json');
-  return getHTML(id, channel.name, getCode(source, `${startPath}/v3/animations/${id}/`));
-}
-
-function getCode(json, animations) {
-  let animationList = json.animations || { orderedKeys: [], propsByKey: {} };
-  json.source = wraplibraries(json);
-  animationList.orderedKeys.forEach((key) => {
-    let animation = animationList.propsByKey[key];
-    let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`;
-    animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`;
-  })
-  return `var p5Inst = new p5(null, 'sketch');
-  window.preload = function () {
+  window.preload = function __gamelabPreload() {
   p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
   initMobileControls(p5Inst);
 
@@ -40,10 +30,6 @@ function getCode(json, animations) {
     });
   });
 
-  let __userCodeLoaded = false;
-  let __userSetup = null;
-  let __userPreload = null;
-
   function loadUserCode() {
     if (__userCodeLoaded) return;
     __userCodeLoaded = true;
@@ -52,12 +38,17 @@ function getCode(json, animations) {
     script.text = ${inline(json.source)};
     document.body.appendChild(script);
 
-    // The user script now owns window.setup/window.preload. Keep direct
-    // references so the bridge itself is never mistaken for user code.
-    __userSetup = typeof window.setup === "function" ? window.setup : null;
-    __userPreload = typeof window.preload === "function" && window.preload !== window.wrappedExportedCode
+    __userSetup = typeof window.setup === "function" && window.setup !== window.__gamelabSetupBridge
+      ? window.setup
+      : null;
+    __userPreload = typeof window.preload === "function" && window.preload !== __gamelabPreload
       ? window.preload
       : null;
+
+    if (__userSetup) {
+      window.setup = window.__gamelabSetupBridge;
+      __setupReadyResolve(__userSetup);
+    }
   }
 
   function wrappedExportedCode(stage) {
@@ -67,16 +58,11 @@ function getCode(json, animations) {
       if (__userPreload) {
         __userPreload();
       }
-      if (__userSetup) {
-        window.setup = __userSetup;
-      }
       return;
     }
 
     if (stage === 'setup') {
-      if (__userSetup) {
-        __userSetup();
-      }
+      return window.__gamelabSetupBridge();
     }
   }
 
@@ -93,17 +79,24 @@ function getCode(json, animations) {
       localStorage.userId = id;
       window.wrappedExportedCode('preload');
       try { window.draw = draw; } catch (e) {}
-  })
-  .catch(err => {
+  }).catch(err => {
       throw new Error(err);
   });
   }
 
-  window.setup = function () {
+  window.__gamelabSetupBridge = function () {
+    if (__setupCalled) return;
+    __setupCalled = true;
+
     if (__userSetup) {
       return __userSetup();
     }
+
+    return __setupReady.then(setup => setup());
   };
+
+  window.setup = window.__gamelabSetupBridge;
+  `
 }
 
 function getHTML(id, name, code) {
