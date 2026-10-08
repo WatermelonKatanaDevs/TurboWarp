@@ -78,14 +78,8 @@ function getCode(json, animations) {
   script.text = ${inline(json.source)};
   script.onload = function() {
     try { window.draw = draw; } catch (e) {}
-    switch (stage) {
-      case 'preload':
-        if (oldPreload !== window.preload) { preload(); }
-        break;
-      case 'setup':
-        if (oldSetup !== window.setup) { setup(); }
-        break;
-      }
+    if (oldPreload !== window.preload) { preload(); }
+    if (oldSetup !== window.setup) { setup(); }
   }
   document.body.appendChild(script);
 }
