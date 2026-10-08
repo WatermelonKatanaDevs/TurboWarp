@@ -74,22 +74,20 @@ function getCode(json, animations) {
   Object.defineProperties(Object.prototype,{apply:{value:function(fn,args){if(typeof this==="object"&&"length"in this){return Function.prototype.apply.call(this,fn,args)}},enumerable:false,configurable:true,writable:true},concat:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.concat.apply(this,arguments)}return[]},enumerable:false,configurable:true,writable:true},every:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.every.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},indexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.indexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},filter:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.filter.call(this,cb,_this)}return[]},enumerable:false,configurable:true,writable:true},forEach:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.forEach.call(this,cb,_this)}},enumerable:false,configurable:true,writable:true},join:{value:function(separator){if(typeof this==="object"&&"length"in this){return Array.prototype.join.call(this,separator)}return ""},enumerable:false,configurable:true,writable:true},lastIndexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.lastIndexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},map:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){const mapped=[];for(let i in this){mapped.push(cb.call(_this,this[i],Number(i)))}return mapped}},enumerable:false,configurable:true,writable:true},push:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.push.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},pop:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.pop.apply(this)}return undefined},enumerable:false,configurable:true,writable:true},reduce:{value:function(cb,startValue){if(typeof this==="object"&&"length"in this){return Array.prototype.reduce.call(this,cb,startValue)}throw new TypeError("Cannot call reduce on a non-array object")},enumerable:false,configurable:true,writable:true},some:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.some.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},shift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.shift.call(this)}return undefined},enumerable:false,configurable:true,writable:true},splice:{value:function(start,amount,...items){if(typeof this==="object"&&"length"in this){return Array.prototype.splice.call(this,start,amount,...items)}return[]},enumerable:false,configurable:true,writable:true},unshift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.unshift.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},reverse:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.reverse.call(this)}return this},enumerable:false,configurable:true,writable:true},slice:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.slice.apply(this,arguments)}},enumerable:false,configurable:true,writable:true},sort:{value:function(cb){if(typeof this==="object"&&"length"in this){return Array.prototype.sort.call(this,cb)}return this},enumerable:false,configurable:true,writable:true}});
   let oldPreload = window.preload;
   let oldSetup = window.setup;
-  let inject = document.createElement("script");
-  inject.text = ${inline(json.source)};
-  inject.onload = function() {
-    try { window.draw = draw; } catch (e) {}
-      switch (stage) {
-        case 'preload':
-          if (oldPreload !== window.preload) { preload(); }
-          break;
-        case 'setup':
-          if (oldSetup !== window.setup) { setup(); }
-          break;
-    }
-  }
+  let script = document.createElement("script");
+  script.text = ${inline(json.source)};
   script.onload = function() {
-    document.body.appendChild(inject);
+    try { window.draw = draw; } catch (e) {}
+    switch (stage) {
+      case 'preload':
+        if (oldPreload !== window.preload) { preload(); }
+        break;
+      case 'setup':
+        if (oldSetup !== window.setup) { setup(); }
+        break;
+      }
   }
+  document.body.appendChild(script);
 }
   window.wrappedExportedCode = wrappedExportedCode;
   wrappedExportedCode('preload');
