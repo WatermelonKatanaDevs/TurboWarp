@@ -17,10 +17,6 @@ function getCode(json, animations) {
   })
   return `var p5Inst = new p5(null, 'sketch');
   window.preload = function () {
-  let __generatedPreload = window.preload;
-  let __userScriptLoaded = false;
-  let __userSetup = null;
-  let __userPreload = null;
   p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
   initMobileControls(p5Inst);
 
@@ -74,55 +70,26 @@ function getCode(json, animations) {
     })(entry, p5Inst[entry])
   }
   Object.defineProperties(Object.prototype,{apply:{value:function(fn,args){if(typeof this==="object"&&"length"in this){return Function.prototype.apply.call(this,fn,args)}},enumerable:false,configurable:true,writable:true},concat:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.concat.apply(this,arguments)}return[]},enumerable:false,configurable:true,writable:true},every:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.every.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},indexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.indexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},filter:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.filter.call(this,cb,_this)}return[]},enumerable:false,configurable:true,writable:true},forEach:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.forEach.call(this,cb,_this)}},enumerable:false,configurable:true,writable:true},join:{value:function(separator){if(typeof this==="object"&&"length"in this){return Array.prototype.join.call(this,separator)}return ""},enumerable:false,configurable:true,writable:true},lastIndexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.lastIndexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},map:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){const mapped=[];for(let i in this){mapped.push(cb.call(_this,this[i],Number(i)))}return mapped}},enumerable:false,configurable:true,writable:true},push:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.push.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},pop:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.pop.apply(this)}return undefined},enumerable:false,configurable:true,writable:true},reduce:{value:function(cb,startValue){if(typeof this==="object"&&"length"in this){return Array.prototype.reduce.call(this,cb,startValue)}throw new TypeError("Cannot call reduce on a non-array object")},enumerable:false,configurable:true,writable:true},some:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.some.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},shift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.shift.call(this)}return undefined},enumerable:false,configurable:true,writable:true},splice:{value:function(start,amount,...items){if(typeof this==="object"&&"length"in this){return Array.prototype.splice.call(this,start,amount,...items)}return[]},enumerable:false,configurable:true,writable:true},unshift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.unshift.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},reverse:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.reverse.call(this)}return this},enumerable:false,configurable:true,writable:true},slice:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.slice.apply(this,arguments)}},enumerable:false,configurable:true,writable:true},sort:{value:function(cb){if(typeof this==="object"&&"length"in this){return Array.prototype.sort.call(this,cb)}return this},enumerable:false,configurable:true,writable:true}});
+  let script = document.createElement("script");
+  script.text = ${inline(json.source)};
+  document.body.appendChild(script);
+  try { window.draw = draw; } catch (e) {}
+  switch (stage) {
+    case 'preload':
+      if (preload !== window.preload) { preload(); }
+      break;
+    case 'setup':
+      if (setup !== window.setup) { setup(); }
+      break;
+  }
   }
   window.wrappedExportedCode = wrappedExportedCode;
-  turbowarphost.then(d => {
-    if(d.userid) {
-      return d.userid;
-    } else {
-      if(localStorage.userId?.startsWith("accountUser:")) {delete localStorage.userId}
-      return getUserId();
-    }
-  }).then(id => {
-      localStorage.userId = id;
-
-      if (!__userScriptLoaded) {
-        __userScriptLoaded = true;
-        let script = document.createElement("script");
-        script.text = ${inline(json.source)};
-        document.body.appendChild(script);
-
-        __userSetup = typeof window.setup === "function"
-          ? window.setup
-          : null;
-        __userPreload = typeof window.preload === "function" &&
-          window.preload !== __generatedPreload
-          ? window.preload
-          : null;
-
-        window.setup = window.__gamelabSetupBridge;
-      }
-
-      try { window.draw = draw; } catch (e) {}
-
-      if (stage === 'preload' && __userPreload) {
-        return __userPreload();
-      }
-
-      if (stage === 'setup' && __userSetup) {
-        return __userSetup();
-      }
-  })
-  .catch(err => {
-      throw new Error(err);
-  })
+  wrappedExportedCode('preload');
 };
 
-window.__gamelabSetupBridge = function () {
-  return window.wrappedExportedCode('setup');
+window.setup = function () {
+  window.wrappedExportedCode('setup');
 };
-
-window.setup = window.__gamelabSetupBridge;
   `
 }
 
@@ -145,7 +112,20 @@ function getHTML(id, name, code) {
       <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
       <script src="${dependency}/gamelab-api.js"></script>
       <script>
-        ${code}
+        turbowarphost.then(d => {
+          if(d.userid) {
+            return d.userid;
+          } else {
+            if(localStorage.userId?.startsWith("accountUser:")) {delete localStorage.userId}
+            return getUserId();
+          }
+        }).then(id => {
+            localStorage.userId = id;
+            ${code}
+        })
+        .catch(err => {
+            throw new Error(err);
+        })
         window.addEventListener("DOMContentLoaded", () => {
         _FCONFIG_.url = (function(){var url="https://studio.code.org/projects/gamelab/${id}";var params=location.search;if(params.startsWith("?u=")){params=params.slice(3)}var re=/[?&]([^&=]+)(?:[&=])([^&=]+)/gim;var m;while((m=re.exec(params))!=null){if(m.index===re.lastIndex){re.lastIndex+=1}url+=m[0]}return url})();
         _FCONFIG_.pathname = "projects/gamelab/${id}";
