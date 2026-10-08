@@ -85,13 +85,14 @@ function getCode(json, animations) {
       break;
   }
   window.wrappedExportedCode = wrappedExportedCode;
-  wrappedExportedCode('preload');`)}
-  })()
-};
-
-window.setup = function () {
-  window.wrappedExportedCode('setup');
-};
+  wrappedExportedCode('preload');
+  };
+  
+  window.setup = function () {
+    window.wrappedExportedCode('setup');
+    };
+`)}
+})()
   `
 }
 
