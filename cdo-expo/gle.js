@@ -1,55 +1,26 @@
-const fs = require("fs");
 const request = require('./requests');
-const startPath = "https://studio.code.org";
-let projectPath = "./";
+const { escapehtml, inline, wraplibraries } = require('./format');
+const startPath = 'https://studio.code.org';
 
-async function exportProject(dirname, id) {
-  return new Promise(async (resolve, reject) => {
-    projectPath = dirname || projectPath;
-    fs.cpSync(`./gamelab`, projectPath, { recursive: true })
-    let source = await getJSON(id);
-    await getHTML(id);
-    await getCode(source);
-    resolve(true);
-  })
+async function exportProject(id, channel) {
+  const source = await request.send(`${startPath}/v3/sources/${id}/main.json`, 'json');
+  return getHTML(id, channel.name, getCode(source, `${startPath}/v3/animations/${id}/`));
 }
 
-async function getJSON(id) {
-  return new Promise((resolve, reject) => {
-    request.send(`${startPath}/v3/sources/${id}/main.json`, "json")
-      .then(data => {
-        resolve(data);
-      })
-      .catch(err => {
-        reject(err);
-      })
+function getCode(json, animations) {
+  let animationList = json.animations || { orderedKeys: [], propsByKey: {} };
+  json.source = wraplibraries(json);
+  animationList.orderedKeys.forEach((key) => {
+    let animation = animationList.propsByKey[key];
+    let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`;
+    animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`;
   })
-}
-
-async function getCode(json) {
-  let source = fs.readFileSync(`${projectPath}/code.js`, "utf-8");
-  let animationList = JSON.parse(source.match(/(?<=var animationListJSON =\s+).+(?=;)/)[0]);
-  let libraries = ``;
-  json.libraries = json.libraries || [];
-  json.libraries.forEach((library) => {
-    let lib = library.name;
-    let src = library.source;
-    let funcs = library.functions.join("|");
-    let pattern = new RegExp(`(?<!\\(\\s*|(?<!\\/\\/.*|\\/\\*[^\\*\\/]*|["'][^'"]*)function\\s+[\\S]+\\s*\\(\\)\\s*{[^}]+)function\\s+(${funcs})\\s*(?=\\()`, "g");
-    src = src.replace(pattern, `var $1 = this.$1 = function`);
-    libraries += `var ${lib} = window[${JSON.stringify(lib)}] || {};
-    (function ${lib}() {\n${src}\nreturn(this)\n}).bind(${lib})();\n`;
-  });
-  json.source = libraries + source.match(/(?<=\/\/ -----\s\s).+(?=\s+\/\/ -----)/s)[0];
-  json.source = json.source.replace(/<\s*\/script\s*>/g, "<\\/script>");
-  // .replace(/(?<=['"])(https:\/\/.+)(?=['"])/g, "/xhr?u=$1");
-  await addFile("/code.js", Buffer.from(`var p5Inst = new p5(null, 'sketch');
-
-window.preload = function () {
-  p5Inst._startTime=Date.now(); p5Inst.frameCount=0;
+  return `(function() {
+      let script = document.createElement("script");
+      script.text = ${inline(`var p5Inst = new p5(null, 'sketch');
+  window.preload = function () {
+  p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
   initMobileControls(p5Inst);
-  // scaler
-  ;(function(){const element=document.getElementById("sketch");function rescale(){element.style["transform"]="scale("+(Math.min(window.innerWidth,window.innerHeight)/400)+")"}rescale();window.onresize=rescale;element.style["transform-origin"]="top left"})();
 
   p5Inst._predefinedSpriteAnimations = {};
   p5Inst._pauseSpriteAnimationsByDefault = false;
@@ -70,6 +41,7 @@ window.preload = function () {
       p5Inst._predefinedSpriteAnimations[props.name].frameDelay = props.frameDelay;
     });
   });
+
   function wrappedExportedCode(stage) {
     if (stage === 'preload') {
       if (setup !== window.setup) {
@@ -78,7 +50,7 @@ window.preload = function () {
         return;
       }
     }
-for (entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_targetFrameRate", "windowWidth", "windowHeight", "_curElement", "canvas", "width", "height", "_textLeading", "_textSize", "_textStyle", "_textAscent", "_textDescent", "imageData", "pixels", "pAccelerationX", "pAccelerationY", "pAccelerationZ", "pRotationX", "pRotationY", "pRotationZ", "rotationX", "rotationY", "rotationZ", "deviceOrientation", "turnAxis", "isKeyPressed", "keyIsPressed", "keyCode", "key", "_lastKeyCodeTyped", "mouseX", "mouseY", "winMouseX", "winMouseY", "_hasMouseInteracted", "pmouseX", "pmouseY", "pwinMouseX", "pwinMouseY", "mouseButton", "isMousePressed", "mouseIsPressed", "touches", "touchX", "touchY", "winTouchX", "winTouchY", "_hasTouchInteracted", "ptouchX", "ptouchY", "pwinTouchX", "pwinTouchY", "touchIsDown", "_textFont", "tex", "isTexture"]) {
+  for (let entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_targetFrameRate", "windowWidth", "windowHeight", "_curElement", "canvas", "width", "height", "_textLeading", "_textSize", "_textStyle", "_textAscent", "_textDescent", "imageData", "pixels", "pAccelerationX", "pAccelerationY", "pAccelerationZ", "pRotationX", "pRotationY", "pRotationZ", "rotationX", "rotationY", "rotationZ", "deviceOrientation", "turnAxis", "isKeyPressed", "keyIsPressed", "keyCode", "key", "_lastKeyCodeTyped", "mouseX", "mouseY", "winMouseX", "winMouseY", "_hasMouseInteracted", "pmouseX", "pmouseY", "pwinMouseX", "pwinMouseY", "mouseButton", "isMousePressed", "mouseIsPressed", "touches", "touchX", "touchY", "winTouchX", "winTouchY", "_hasTouchInteracted", "ptouchX", "ptouchY", "pwinTouchX", "pwinTouchY", "touchIsDown", "_textFont", "tex", "isTexture"]) {
     (function setRegistry(entry, tpoint) {
         Object.defineProperty(window, entry, {
             set: function (e) {
@@ -98,75 +70,83 @@ for (entry of ["_fillSet", "_doFill", "_doStroke", "_strokeSet", "focused", "_ta
             configurable: true
         })
     })(entry, p5Inst[entry])
+  }
+  Object.defineProperties(Object.prototype,{apply:{value:function(fn,args){if(typeof this==="object"&&"length"in this){return Function.prototype.apply.call(this,fn,args)}},enumerable:false,configurable:true,writable:true},concat:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.concat.apply(this,arguments)}return[]},enumerable:false,configurable:true,writable:true},every:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.every.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},indexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.indexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},filter:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.filter.call(this,cb,_this)}return[]},enumerable:false,configurable:true,writable:true},forEach:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.forEach.call(this,cb,_this)}},enumerable:false,configurable:true,writable:true},join:{value:function(separator){if(typeof this==="object"&&"length"in this){return Array.prototype.join.call(this,separator)}return ""},enumerable:false,configurable:true,writable:true},lastIndexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.lastIndexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},map:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){const mapped=[];for(let i in this){mapped.push(cb.call(_this,this[i],Number(i)))}return mapped}},enumerable:false,configurable:true,writable:true},push:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.push.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},pop:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.pop.apply(this)}return undefined},enumerable:false,configurable:true,writable:true},reduce:{value:function(cb,startValue){if(typeof this==="object"&&"length"in this){return Array.prototype.reduce.call(this,cb,startValue)}throw new TypeError("Cannot call reduce on a non-array object")},enumerable:false,configurable:true,writable:true},some:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.some.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},shift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.shift.call(this)}return undefined},enumerable:false,configurable:true,writable:true},splice:{value:function(start,amount,...items){if(typeof this==="object"&&"length"in this){return Array.prototype.splice.call(this,start,amount,...items)}return[]},enumerable:false,configurable:true,writable:true},unshift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.unshift.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},reverse:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.reverse.call(this)}return this},enumerable:false,configurable:true,writable:true},slice:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.slice.apply(this,arguments)}},enumerable:false,configurable:true,writable:true},sort:{value:function(cb){if(typeof this==="object"&&"length"in this){return Array.prototype.sort.call(this,cb)}return this},enumerable:false,configurable:true,writable:true}});
+  let oldPreload = window.preload;
+  let oldSetup = window.setup;
+  let script = document.createElement("script");
+  script.text = ${inline(json.source)};
+  script.onload = function() {
+    try { window.draw = draw; } catch (e) {}
+    switch (stage) {
+      case 'preload':
+        if (oldPreload !== window.preload) { preload(); }
+        break;
+      case 'setup':
+        if (oldSetup !== window.setup) { setup(); }
+        break;
+      }
+  }
+  document.body.appendChild(script);
 }
-Object.defineProperties(Object.prototype,{apply:{value:function(fn,args){if(typeof this==="object"&&"length"in this){return Function.prototype.apply.call(this,fn,args)}},enumerable:false,configurable:true,writable:true},concat:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.concat.apply(this,arguments)}return[]},enumerable:false,configurable:true,writable:true},every:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.every.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},indexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.indexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},filter:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.filter.call(this,cb,_this)}return[]},enumerable:false,configurable:true,writable:true},forEach:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.forEach.call(this,cb,_this)}},enumerable:false,configurable:true,writable:true},join:{value:function(separator){if(typeof this==="object"&&"length"in this){return Array.prototype.join.call(this,separator)}return ""},enumerable:false,configurable:true,writable:true},lastIndexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.lastIndexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},map:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){const mapped=[];for(let i in this){mapped.push(cb.call(_this,this[i],Number(i)))}return mapped}},enumerable:false,configurable:true,writable:true},push:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.push.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},pop:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.pop.apply(this)}return undefined},enumerable:false,configurable:true,writable:true},reduce:{value:function(cb,startValue){if(typeof this==="object"&&"length"in this){return Array.prototype.reduce.call(this,cb,startValue)}throw new TypeError("Cannot call reduce on a non-array object")},enumerable:false,configurable:true,writable:true},some:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.some.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},shift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.shift.call(this)}return undefined},enumerable:false,configurable:true,writable:true},splice:{value:function(start,amount,...items){if(typeof this==="object"&&"length"in this){return Array.prototype.splice.call(this,start,amount,...items)}return[]},enumerable:false,configurable:true,writable:true},unshift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.unshift.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},reverse:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.reverse.call(this)}return this},enumerable:false,configurable:true,writable:true},slice:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.slice.apply(this,arguments)}},enumerable:false,configurable:true,writable:true},sort:{value:function(cb){if(typeof this==="object"&&"length"in this){return Array.prototype.sort.call(this,cb)}return this},enumerable:false,configurable:true,writable:true}});
-;(function() {
-    let script = document.createElement("script");
-    script.text = JSON.stringify(${json.source});
-    document.body.appendChild(script);
-    return fetch("/api/auth/check").then(r => {
-        if (r.status === 200) {
-            return r.json();
-        } else {
-            return {auth: false};
-        }
-    }).then(d => {
-        if(d.user !== undefined) {
-          return "accountUser:" + d.user.id;
-        } else {
-          if(localStorage.userId?.startsWith("accountUser:") && !d.auth) {delete localStorage.userId}
-          return getUserId();
-        }
-    }).then(id => {
-        localStorage.userId = id;
-        try { window.draw = draw; } catch (e) {}
-        switch (stage) {
-          case 'preload':
-            if (preload !== window.preload) { preload(); }
-            break;
-          case 'setup':
-            if (setup !== window.setup) { setup(); }
-            break;
-        }
-    })
-    .catch(err => {
-        throw new Error(err);
-    })
-})();
-}
-window.wrappedExportedCode = wrappedExportedCode;
-wrappedExportedCode('preload');
+  window.wrappedExportedCode = wrappedExportedCode;
+  wrappedExportedCode('preload');
 };
 
 window.setup = function () {
-  window.wrappedExportedCode('setup');
-};
-  `))
+window.wrappedExportedCode('setup');
+};`)};
+return turbowarphost.then(d => {
+  if(d.userid) {
+    return d.userid;
+    } else {
+      if(localStorage.userId?.startsWith("accountUser:")) {delete localStorage.userId}
+    return getUserId();
+    }
+    }).then(id => {
+      localStorage.userId = id;
+      document.body.appendChild(script);
+      })
+      .catch(err => {
+          throw new Error(err);
+      })
+  })();
+  `
 }
 
-async function getHTML(id) {
-  await request.send(`${startPath}/v3/channels/${id}`, "json")
-    .then(async data => {
-      await addFile("/index.html", Buffer.from(`<html>
-<head>
-  <title>${data.name}</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
-
-  <link href="gamelab.css" rel="stylesheet" type="text/css">
-  <script src="p5.js"></script>
-  <script src="p5.play.js"></script>
-  <script>
-    window._FCONFIG_ = { channel: "${id}", useDatablockStorage: true};
-    function setExportConfig(config) { _FCONFIG_ = Object.assign(_FCONFIG_, config) }
-    _FCONFIG_.url = (function () { var url = "https://studio.code.org/projects/gamelab/${id}"; var params = location.search; if (params.startsWith("?u=")) { params = params.slice(3) } var re = /[?&]([^&=]+)(?:[&=])([^&=]+)/gim; var m; while ((m = re.exec(params)) != null) { if (m.index === re.lastIndex) { re.lastIndex += 1 } url += m[0] } return url })();
-    _FCONFIG_.pathname = "projects/gamelab/${id}";
+function getHTML(id, name, code) {
+  const dependency = '/turbowarp/gamelab'
+  return `<html>
+  <head>
+    <title>${escapehtml(name)}</title>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <script src="/turbowarp/sandbox.js"></script>
+      <link href="${dependency}/gamelab.css" rel="stylesheet" type="text/css">
+      <script src="${dependency}/p5.js"></script>
+      <script src="${dependency}/p5.play.js"></script>
+      <script>
+        window._FCONFIG_ = { channel: "${id}", useDatablockStorage: true };
+        function setExportConfig(config) { _FCONFIG_ = Object.assign(_FCONFIG_, config) }
+      </script>
+      <script src="https://studio.code.org/projects/gamelab/${id}/export_config?script_call=setExportConfig"></script>
+      <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
+      <script src="${dependency}/gamelab-api.js"></script>
+      <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        ${code}
+        _FCONFIG_.url = (function(){var url="https://studio.code.org/projects/gamelab/${id}";var params=location.search;if(params.startsWith("?u=")){params=params.slice(3)}var re=/[?&]([^&=]+)(?:[&=])([^&=]+)/gim;var m;while((m=re.exec(params))!=null){if(m.index===re.lastIndex){re.lastIndex+=1}url+=m[0]}return url})();
+        _FCONFIG_.pathname = "projects/gamelab/${id}";
+        // scaler
+        const element = document.getElementById("sketch");
+        function rescale() {
+          element.style["transform"] = "scale(" + (Math.min(window.innerWidth, window.innerHeight) / 400) + ")";
+        }
+        rescale();
+        window.onresize = rescale;
+        element.style["transform-origin"] = "top left";
+      })
   </script>
-  <script src="gamelab-api.js"></script>
-  <script src="code.js"></script>
-  <script src="https://studio.code.org/projects/gamelab/${id}/export_config?script_call=setExportConfig"></script>
-  <script src="gamelab-api.js"></script>
   <style>
     body.expo {
       background-color: black;
@@ -176,8 +156,8 @@ async function getHTML(id) {
       top: 82px;
     }
   </style>
-</head>
-<body class="web"
+  </head>
+  <body class="web"
   style="margin:0; overflow:hidden; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; position:fixed; top:0; left:0; width:400px; height:565px;">
   <div id="sketch" class="web" style="position:absolute;"></div>
   <div id="soft-buttons" style="display: none">
@@ -190,29 +170,12 @@ async function getHTML(id) {
     <button id="downButton" disabled className="arrow">
     </button>
   </div>
-  <div id="studio-dpad-container"
-    style="display:none; position:absolute; width:400px; bottom:5px; height:157px; overflow-y:hidden; z-index: -1;">
+  <div id="studio-dpad-container" style="display:none; position:absolute; width:400px; bottom:5px; height:157px; overflow-y:hidden; z-index: -1;">
   </div>
 </body>
-</html>`))
-    })
-}
-
-async function addFile(name, data) {
-  return new Promise((resolve, reject) => {
-    let file = fs.createWriteStream(projectPath + name);
-    file.write(data);
-    file.on("finish", () => {
-      resolve(true)
-    })
-    file.on("error", (e) => {
-      console.log(e);
-      reject("file could not be completed")
-    })
-    file.end();
-  })
+</html>`;
 }
 
 module.exports = {
-  exportProject
+  exportProject,
 }
