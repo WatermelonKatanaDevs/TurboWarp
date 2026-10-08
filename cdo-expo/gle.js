@@ -127,8 +127,8 @@ function getHTML(id, name, code) {
       <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
       <script src="${dependency}/gamelab-api.js"></script>
       <script>
+      window.addEventListener("DOMContentLoaded", () => {
         ${code}
-        window.addEventListener("DOMContentLoaded", () => {
         _FCONFIG_.url = (function(){var url="https://studio.code.org/projects/gamelab/${id}";var params=location.search;if(params.startsWith("?u=")){params=params.slice(3)}var re=/[?&]([^&=]+)(?:[&=])([^&=]+)/gim;var m;while((m=re.exec(params))!=null){if(m.index===re.lastIndex){re.lastIndex+=1}url+=m[0]}return url})();
         _FCONFIG_.pathname = "projects/gamelab/${id}";
         // scaler
