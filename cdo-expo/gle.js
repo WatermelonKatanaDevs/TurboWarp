@@ -15,9 +15,7 @@ function getCode(json, animations) {
     let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`;
     animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`;
   })
-  return `(function(){
-  let script = document.createElement("script");
-  script.text = ${inline(`var p5Inst = new p5(null, 'sketch');
+  return `var p5Inst = new p5(null, 'sketch');
   window.preload = function () {
   p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
   initMobileControls(p5Inst);
@@ -84,15 +82,14 @@ function getCode(json, animations) {
       if (setup !== window.setup) { setup(); }
       break;
   }
+  }
   window.wrappedExportedCode = wrappedExportedCode;
   wrappedExportedCode('preload');
-  };
-  
-  window.setup = function () {
-    window.wrappedExportedCode('setup');
-    };
-`)}
-})()
+};
+
+window.setup = function () {
+  window.wrappedExportedCode('setup');
+};
   `
 }
 
@@ -115,7 +112,6 @@ function getHTML(id, name, code) {
       <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
       <script src="${dependency}/gamelab-api.js"></script>
       <script>
-        ${code}
         window.addEventListener("DOMContentLoaded", () => {
         _FCONFIG_.url = (function(){var url="https://studio.code.org/projects/gamelab/${id}";var params=location.search;if(params.startsWith("?u=")){params=params.slice(3)}var re=/[?&]([^&=]+)(?:[&=])([^&=]+)/gim;var m;while((m=re.exec(params))!=null){if(m.index===re.lastIndex){re.lastIndex+=1}url+=m[0]}return url})();
         _FCONFIG_.pathname = "projects/gamelab/${id}";
@@ -138,7 +134,7 @@ function getHTML(id, name, code) {
             localStorage.userId = id;
             let script = document.createElement("script");
             script.text = ${inline(code)};
-            (document.head || document.documentElement).appendChild(script);
+            document.body.appendChild(script);
         })
         .catch(err => {
             throw new Error(err);
