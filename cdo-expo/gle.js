@@ -15,17 +15,23 @@ function getCode(json, animations) {
     let url = animation.sourceUrl ? `${startPath}/${animation.sourceUrl}` : `${animations + key}.png`;
     animation.rootRelativePath = `/media?u=${encodeURIComponent(url)}`;
   })
-  return `(function() {
-      let script = document.createElement("script");
-      script.text = ${inline(`var p5Inst = new p5(null, 'sketch');
+  return `turbowarphost.then(d => {
+  if(d.userid) {
+    return d.userid;
+  } else {
+    if(localStorage.userId?.startsWith("accountUser:")) {delete localStorage.userId}
+    return getUserId();
+  }
+}).then(id => {
+  window.p5Inst = new p5(null, 'sketch');
   window.preload = function () {
   p5Inst._startTime = Date.now(); p5Inst.frameCount = 0;
   initMobileControls(p5Inst);
 
   p5Inst._predefinedSpriteAnimations = {};
   p5Inst._pauseSpriteAnimationsByDefault = false;
-  var animationListJSON = ${JSON.stringify(animationList)}
-  var orderedKeys = animationListJSON.orderedKeys;
+  window.animationListJSON = ${JSON.stringify(animationList)}
+  window.orderedKeys = animationListJSON.orderedKeys;
   orderedKeys.forEach(function (key) {
     var props = animationListJSON.propsByKey[key];
     var frameCount = props.frameCount;
@@ -72,39 +78,31 @@ function getCode(json, animations) {
     })(entry, p5Inst[entry])
   }
   Object.defineProperties(Object.prototype,{apply:{value:function(fn,args){if(typeof this==="object"&&"length"in this){return Function.prototype.apply.call(this,fn,args)}},enumerable:false,configurable:true,writable:true},concat:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.concat.apply(this,arguments)}return[]},enumerable:false,configurable:true,writable:true},every:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.every.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},indexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.indexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},filter:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.filter.call(this,cb,_this)}return[]},enumerable:false,configurable:true,writable:true},forEach:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.forEach.call(this,cb,_this)}},enumerable:false,configurable:true,writable:true},join:{value:function(separator){if(typeof this==="object"&&"length"in this){return Array.prototype.join.call(this,separator)}return ""},enumerable:false,configurable:true,writable:true},lastIndexOf:{value:function(search,fromIndex){if(typeof this==="object"&&"length"in this){return Array.prototype.lastIndexOf.call(this,search,fromIndex)}return -1},enumerable:false,configurable:true,writable:true},map:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){const mapped=[];for(let i in this){mapped.push(cb.call(_this,this[i],Number(i)))}return mapped}},enumerable:false,configurable:true,writable:true},push:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.push.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},pop:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.pop.apply(this)}return undefined},enumerable:false,configurable:true,writable:true},reduce:{value:function(cb,startValue){if(typeof this==="object"&&"length"in this){return Array.prototype.reduce.call(this,cb,startValue)}throw new TypeError("Cannot call reduce on a non-array object")},enumerable:false,configurable:true,writable:true},some:{value:function(cb,_this){if(typeof this==="object"&&"length"in this){return Array.prototype.some.call(this,cb,_this)}return false},enumerable:false,configurable:true,writable:true},shift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.shift.call(this)}return undefined},enumerable:false,configurable:true,writable:true},splice:{value:function(start,amount,...items){if(typeof this==="object"&&"length"in this){return Array.prototype.splice.call(this,start,amount,...items)}return[]},enumerable:false,configurable:true,writable:true},unshift:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.unshift.apply(this,arguments)}return 0},enumerable:false,configurable:true,writable:true},reverse:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.reverse.call(this)}return this},enumerable:false,configurable:true,writable:true},slice:{value:function(){if(typeof this==="object"&&"length"in this){return Array.prototype.slice.apply(this,arguments)}},enumerable:false,configurable:true,writable:true},sort:{value:function(cb){if(typeof this==="object"&&"length"in this){return Array.prototype.sort.call(this,cb)}return this},enumerable:false,configurable:true,writable:true}});
-  let oldPreload = window.preload;
-  let oldSetup = window.setup;
-  let script = document.createElement("script");
-  script.text = ${inline(json.source)};
-  script.onload = function() {
+    localStorage.userId = id;
+    let script = document.createElement("script");
+    script.text = ${inline(json.source)};
+    document.body.appendChild(script);
     try { window.draw = draw; } catch (e) {}
-    if (oldPreload !== window.preload) { preload(); }
-    if (oldSetup !== window.setup) { setup(); }
+    switch (stage) {
+      case 'preload':
+        if (preload !== window.preload) { preload(); }
+        break;
+      case 'setup':
+        if (setup !== window.setup) { setup(); }
+        break;
+      }
+})
+.catch(err => {
+    throw new Error(err);
+})
   }
-  document.body.appendChild(script);
-}
   window.wrappedExportedCode = wrappedExportedCode;
   wrappedExportedCode('preload');
 };
 
 window.setup = function () {
-window.wrappedExportedCode('setup');
-};`)};
-return turbowarphost.then(d => {
-  if(d.userid) {
-    return d.userid;
-    } else {
-      if(localStorage.userId?.startsWith("accountUser:")) {delete localStorage.userId}
-    return getUserId();
-    }
-    }).then(id => {
-      localStorage.userId = id;
-      document.body.appendChild(script);
-      })
-      .catch(err => {
-          throw new Error(err);
-      })
-  })();
+  window.wrappedExportedCode('setup');
+};
   `
 }
 
@@ -127,8 +125,8 @@ function getHTML(id, name, code) {
       <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
       <script src="${dependency}/gamelab-api.js"></script>
       <script>
-      window.addEventListener("DOMContentLoaded", () => {
         ${code}
+        window.addEventListener("DOMContentLoaded", () => {
         _FCONFIG_.url = (function(){var url="https://studio.code.org/projects/gamelab/${id}";var params=location.search;if(params.startsWith("?u=")){params=params.slice(3)}var re=/[?&]([^&=]+)(?:[&=])([^&=]+)/gim;var m;while((m=re.exec(params))!=null){if(m.index===re.lastIndex){re.lastIndex+=1}url+=m[0]}return url})();
         _FCONFIG_.pathname = "projects/gamelab/${id}";
         // scaler
