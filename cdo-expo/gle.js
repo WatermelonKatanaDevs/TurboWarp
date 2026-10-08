@@ -81,10 +81,10 @@ function getCode(json, animations) {
     }
   }).then(id => {
       localStorage.userId = id;
+      wrappedExportedCode('preload');
       let script = document.createElement("script");
       script.text = ${inline(json.source)};
       document.body.appendChild(script);
-      wrappedExportedCode('preload');
       try { window.draw = draw; } catch (e) {}
       switch (stage) {
         case 'preload':
