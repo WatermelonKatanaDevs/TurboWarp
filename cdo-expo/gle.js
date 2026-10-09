@@ -82,10 +82,12 @@ function getCode(json, animations) {
         }
       }).then(id => {
           localStorage.userId = id;
+          const oldPreload = window.preload;
+          const oldSetup = window.setup;
           document.body.appendChild(script);
           try { window.draw = draw; } catch (e) {}
-          preload();
-          setup();
+          if (preload !== oldPreload) { preload(); }
+          if (setup !== oldSetup) { setup(); }
       })
       .catch(err => {
           throw new Error(err);
