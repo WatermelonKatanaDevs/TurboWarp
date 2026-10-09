@@ -74,6 +74,8 @@ function getCode(json, animations) {
       let script = document.createElement("script");
       script.text = ${inline(json.source)};
       document.body.appendChild(script);
+      const userPreload = window.preload;
+      const userSetup = window.setup;
       return turbowarphost.then(d => {
         if(d.userid) {
           return d.userid;
@@ -86,10 +88,10 @@ function getCode(json, animations) {
           try { window.draw = draw; } catch (e) {}
           switch (stage) {
             case 'preload':
-              if (preload !== window.preload) { preload(); }
+              if (userPreload !== window.preload) { userPreload(); }
               break;
             case 'setup':
-              if (setup !== window.setup) { setup(); }
+              if (userSetup !== window.setup) { userSetup(); }
               break;
             }
       })
