@@ -73,8 +73,6 @@ function getCode(json, animations) {
   ;(function() {
       let script = document.createElement("script");
       script.text = ${inline(json.source)};
-      document.body.appendChild(script);
-      preload();
       return turbowarphost.then(d => {
         if(d.userid) {
           return d.userid;
@@ -84,13 +82,14 @@ function getCode(json, animations) {
         }
       }).then(id => {
           localStorage.userId = id;
+          document.body.appendChild(script);
           try { window.draw = draw; } catch (e) {}
           switch (stage) {
             case 'preload':
-              if (preload !== window.preload) { preload(); }
+              preload();
               break;
             case 'setup':
-              if (setup !== window.setup) { setup(); }
+              setup();
               break;
             }
       })
