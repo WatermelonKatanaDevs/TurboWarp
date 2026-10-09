@@ -84,14 +84,8 @@ function getCode(json, animations) {
           localStorage.userId = id;
           document.body.appendChild(script);
           try { window.draw = draw; } catch (e) {}
-          switch (stage) {
-            case 'preload':
-              preload();
-              break;
-            case 'setup':
-              setup();
-              break;
-            }
+          preload();
+          setup();
       })
       .catch(err => {
           throw new Error(err);
