@@ -82,7 +82,7 @@ function getCode(json, animations) {
           const oldPreload = window.preload;
           const oldSetup = window.setup;
           let script = document.createElement("script");
-          script.textContent = ${JSON.stringify(json.source)};
+          script.textContent = ${inline(json.source)};
           document.body.appendChild(script);
           try { window.draw = draw; } catch (e) {}
           if (preload !== oldPreload) { preload(); }
