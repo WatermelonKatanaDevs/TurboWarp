@@ -47,48 +47,43 @@ function playerpage(id) {
        window.addEventListener("message", (event) => {
   const data = event.data;
   if (event.source === window.parent && data && data.type === "touch-key") {
+    window.parent.postMessage({ type: "touch-dbg", stage: "wrapper" }, "*");
     frame.contentWindow.postMessage(data, "*");
+    return;
+  }
+  if (event.source === frame.contentWindow && data && data.type === "touch-dbg") {
+    window.parent.postMessage(data, "*");
     return;
   }
   if (event.source !== frame.contentWindow || !data || typeof data !== "object") {
     return;
   }
-          if (data.turbowarp === "ready" && !ready) {
-            ready = true;
-            if (typeof data.title === "string" && data.title) {
-              document.title = data.title;
-            }
-            fetch("/api/auth/check")
-              .then((r) => (r.ok ? r.json() : {}))
-              .catch(() => ({}))
-              .then((d) => {
-                const userid = d.user && (d.user.id || d.user._id)
-                  ? "accountUser:" + (d.user.id || d.user._id)
-                  : null;
-                const storage = load();
-                // Make the authenticated account ID authoritative before the exported
-                // project can call getUserId() or inspect localStorage.userId.
-                if (userid) {
-                  storage.userId = userid;
-                } else if (typeof storage.userId === "string" && storage.userId.startsWith("accountUser:")) {
-                  delete storage.userId;
-                }
-                // const abs = (u) => (typeof u === "string" && u.charAt(0) === "/" ? location.origin + u : u);
-                // let wkuser;
-                // if (!d.user) {
-                //   wkuser = { loggedIn: false };
-                // } else if (d.user.allowuserdata) {
-                //   wkuser = { loggedIn: true, name: d.user.username, avatar: abs(d.user.avatar), banner: abs(d.user.banner), role: d.user.role };
-                // } else {
-                //   wkuser = "disallowed";
-                // }
-                // frame.contentWindow.postMessage({ turbowarp: "init", userid, wkuser, storage }, "*");
-                frame.contentWindow.postMessage({ turbowarp: "init", userid, storage }, "*");
-              });
-          } else if (data.turbowarp === "storage" && ready) {
-            write(data);
-          }
-        });
+  if (data.turbowarp === "ready" && !ready) {
+    ready = true;
+    if (typeof data.title === "string" && data.title) {
+      document.title = data.title;
+    }
+    fetch("/api/auth/check")
+      .then((r) => (r.ok ? r.json() : {}))
+      .catch(() => ({}))
+      .then((d) => {
+        const userid = d.user && (d.user.id || d.user._id)
+          ? "accountUser:" + (d.user.id || d.user._id)
+          : null;
+        const storage = load();
+        // Make the authenticated account ID authoritative before the exported
+        // project can call getUserId() or inspect localStorage.userId.
+        if (userid) {
+          storage.userId = userid;
+        } else if (typeof storage.userId === "string" && storage.userId.startsWith("accountUser:")) {
+          delete storage.userId;
+        }
+        frame.contentWindow.postMessage({ turbowarp: "init", userid, storage }, "*");
+      });
+  } else if (data.turbowarp === "storage" && ready) {
+    write(data);
+  }
+});
         frame.src = "/turbowarp/play" + location.search;
       })();
     </script>
