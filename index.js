@@ -51,8 +51,6 @@ class Turbo {
         hostScript + '<script src="/turbowarp/sandbox.js"></script>'
       );
     }
-
-    //Touch Controls
     const touchKeyScript = `<script>
 window.addEventListener("message", function (e) {
   var d = e.data;
