@@ -44,11 +44,15 @@ function playerpage(id) {
             }
           } catch (err) {}
         }
-        window.addEventListener("message", (event) => {
-          const data = event.data;
-          if (event.source !== frame.contentWindow || !data || typeof data !== "object") {
-            return;
-          }
+       window.addEventListener("message", (event) => {
+  const data = event.data;
+  if (event.source === window.parent && data && data.type === "touch-key") {
+    frame.contentWindow.postMessage(data, "*");
+    return;
+  }
+  if (event.source !== frame.contentWindow || !data || typeof data !== "object") {
+    return;
+  }
           if (data.turbowarp === "ready" && !ready) {
             ready = true;
             if (typeof data.title === "string" && data.title) {
