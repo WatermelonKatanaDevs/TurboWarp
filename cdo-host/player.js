@@ -19,7 +19,6 @@ function playerpage(id) {
     <script>
       (function () {
         const frame = document.getElementById("player");
-        window.parent.postMessage({ type: "touch-dbg", stage: "wrapperLive" }, "*");
         const prefix = "turbowarp:" + ${inline(id)} + ":";
         let ready = false;
         function load() {
@@ -48,12 +47,7 @@ function playerpage(id) {
        window.addEventListener("message", (event) => {
   const data = event.data;
   if (event.source === window.parent && data && data.type === "touch-key") {
-    window.parent.postMessage({ type: "touch-dbg", stage: "wrapper" }, "*");
     frame.contentWindow.postMessage(data, "*");
-    return;
-  }
-  if (event.source === frame.contentWindow && data && data.type === "touch-dbg") {
-    window.parent.postMessage(data, "*");
     return;
   }
   if (event.source !== frame.contentWindow || !data || typeof data !== "object") {
