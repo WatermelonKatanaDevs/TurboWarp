@@ -55,7 +55,6 @@ class Turbo {
 window.addEventListener("message", function (e) {
   var d = e.data;
   if (e.source !== window.parent || !d || d.type !== "touch-key") return;
-  window.parent.postMessage({ type: "touch-dbg", stage: "game" }, "*");
   window.focus();
   var ev = new KeyboardEvent(d.event, {
     key: d.key, code: d.code, keyCode: d.keyCode, which: d.keyCode,
@@ -72,9 +71,6 @@ window.addEventListener("message", function (e) {
 });
 </script>
 `;
-    if (!page.includes('<script src="/turbowarp/sandbox.js"></script>')) {
-      console.log("turbowarp/play: sandbox.js marker not found, receiver not injected");
-    }
     page = page.replace(
       '<script src="/turbowarp/sandbox.js"></script>',
       touchKeyScript + '<script src="/turbowarp/sandbox.js"></script>'
