@@ -65,7 +65,7 @@ window.addEventListener("message", function (e) {
     Object.defineProperty(ev, "keyCode", { get: function () { return d.keyCode; } });
     Object.defineProperty(ev, "which", { get: function () { return d.keyCode; } });
   }
-  (document.activeElement || document.body).dispatchEvent(ev);
+  document.dispatchEvent(ev);
   document.querySelectorAll("iframe").forEach(function (f) {
     f.contentWindow.postMessage(d, "*");
   });
