@@ -19,6 +19,7 @@ function playerpage(id) {
     <script>
       (function () {
         const frame = document.getElementById("player");
+        window.parent.postMessage({ type: "touch-dbg", stage: "wrapperLive" }, "*");
         const prefix = "turbowarp:" + ${inline(id)} + ":";
         let ready = false;
         function load() {
