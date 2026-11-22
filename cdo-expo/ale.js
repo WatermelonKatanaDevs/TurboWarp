@@ -27,34 +27,52 @@ function getHTML(html, id, name, code) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>
-      // App Lab's audio unlock check predates browsers that keep AudioContext
-      // suspended until resume() is called from a user activation.
+      // App Lab's AudioContext can be created before the page receives a
+      // user gesture. Resume every context from a trusted input event.
       (function () {
         const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
         if (!NativeAudioContext) { return; }
 
-        const contexts = new Set();
-        window.AudioContext = new Proxy(NativeAudioContext, {
+        const contexts = [];
+        const WrappedAudioContext = new Proxy(NativeAudioContext, {
           construct(target, args) {
             const context = Reflect.construct(target, args, target);
-            contexts.add(context);
-            if (navigator.userActivation && navigator.userActivation.isActive && context.state === "suspended") {
-              context.resume().catch((error) => console.warn("App Lab audio context resume failed:", error));
-            }
+            contexts.push(context);
             return context;
           }
         });
 
-        function unlockAudio() {
-          contexts.forEach((context) => {
-            if (context.state === "suspended") {
-              context.resume().catch((error) => console.warn("App Lab audio context resume failed:", error));
-            }
-          });
+        window.AudioContext = WrappedAudioContext;
+        if (window.webkitAudioContext === NativeAudioContext) {
+          window.webkitAudioContext = WrappedAudioContext;
         }
 
-        ["pointerdown", "mousedown", "touchend", "keydown"].forEach((event) => {
-          window.addEventListener(event, unlockAudio, true);
+        const inputEvents = [
+          "click", "contextmenu", "auxclick", "dblclick",
+          "mousedown", "mouseup", "pointerup", "touchend",
+          "keydown", "keyup"
+        ];
+
+        function resumeAudioContexts() {
+          let allRunning = true;
+          contexts.forEach((context) => {
+            if (context.state !== "running") {
+              allRunning = false;
+              context.resume().catch((error) => {
+                console.warn("App Lab Web Audio resume failed:", error);
+              });
+            }
+          });
+
+          if (allRunning) {
+            inputEvents.forEach((event) => {
+              document.removeEventListener(event, resumeAudioContexts, true);
+            });
+          }
+        }
+
+        inputEvents.forEach((event) => {
+          document.addEventListener(event, resumeAudioContexts, true);
         });
       })();
     </script>
