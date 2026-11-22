@@ -54,23 +54,17 @@ function getHTML(html, id, name, code) {
         ];
 
         function resumeAudioContexts() {
-          let allRunning = true;
           contexts.forEach((context) => {
             if (context.state !== "running") {
-              allRunning = false;
               context.resume().catch((error) => {
                 console.warn("App Lab Web Audio resume failed:", error);
               });
             }
           });
-
-          if (allRunning) {
-            inputEvents.forEach((event) => {
-              document.removeEventListener(event, resumeAudioContexts, true);
-            });
-          }
         }
 
+        // Keep these listeners installed: App Lab can create its audio
+        // context after the first interaction, and contexts may suspend again.
         inputEvents.forEach((event) => {
           document.addEventListener(event, resumeAudioContexts, true);
         });
