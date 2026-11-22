@@ -26,6 +26,38 @@ function getHTML(html, id, name, code) {
     <title>${escapehtml(name)}</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+      // App Lab's audio unlock check predates browsers that keep AudioContext
+      // suspended until resume() is called from a user activation.
+      (function () {
+        const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!NativeAudioContext) { return; }
+
+        const contexts = new Set();
+        window.AudioContext = new Proxy(NativeAudioContext, {
+          construct(target, args) {
+            const context = Reflect.construct(target, args, target);
+            contexts.add(context);
+            if (navigator.userActivation && navigator.userActivation.isActive && context.state === "suspended") {
+              context.resume().catch((error) => console.warn("App Lab audio context resume failed:", error));
+            }
+            return context;
+          }
+        });
+
+        function unlockAudio() {
+          contexts.forEach((context) => {
+            if (context.state === "suspended") {
+              context.resume().catch((error) => console.warn("App Lab audio context resume failed:", error));
+            }
+          });
+        }
+
+        ["pointerdown", "mousedown", "touchend", "keydown"].forEach((event) => {
+          window.addEventListener(event, unlockAudio, true);
+        });
+      })();
+    </script>
     <script src="/turbowarp/sandbox.js"></script>
     <link rel="preload" href="${dependency}/fa-brands-400.woff2" as="font" crossorigin>
     <link rel="preload" href="${dependency}/fa-solid-900.woff2" as="font" crossorigin>
