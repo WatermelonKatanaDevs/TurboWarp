@@ -15,7 +15,7 @@ function playerpage(id) {
     </style>
   </head>
   <body>
-    <iframe id="player" sandbox="${sandbox}" allow="autoplay; fullscreen; gamepad; clipboard-write; accelerometer; gyroscope"></iframe>
+    <iframe id="player" sandbox="${sandbox}" allow="autoplay *; fullscreen; gamepad; clipboard-write; accelerometer; gyroscope"></iframe>
     <script>
       (function () {
         const frame = document.getElementById("player");
